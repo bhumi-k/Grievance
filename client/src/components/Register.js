@@ -38,7 +38,11 @@ const Register = () => {
         <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
         <input name="confirmPassword" type="password" placeholder="Confirm Password" onChange={handleChange} required />
         <input name="rollNo" placeholder="Roll No." onChange={handleChange} required />
-        <input name="class" placeholder="Class" onChange={handleChange} required />
+        <select name="class" onChange={handleChange} required>
+          <option value="">Select Class</option>
+          <option value="MCA">MCA</option>
+          <option value="MBA">MBA</option>
+        </select>
         <button type="submit">Register</button>
       </form>
     </div>
