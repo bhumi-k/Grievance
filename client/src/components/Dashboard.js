@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
-
-
 const Dashboard = ({ theme }) => {
     const [subjects, setSubjects] = useState([]);
     const [currentTime, setCurrentTime] = useState(Date.now());
-    const [selectedSubjectId, setSelectedSubjectId] = useState(null);
-    const [modal, setModal] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const rollNo = localStorage.getItem('rollNo'); // 👈 fetch from storage
+                const rollNo = localStorage.getItem('rollNo');
                 const response = await fetch(`http://localhost:5000/api/subjects?rollNo=${rollNo}`);
                 const data = await response.json();
                 console.log("Fetched subjects:", data);
@@ -27,42 +22,10 @@ const Dashboard = ({ theme }) => {
         fetchData();
     }, []);
 
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            setModal(new window.bootstrap.Modal(document.getElementById('grievanceModal')));
-        }
-    }, []);
-
     const isWithin48Hours = (resultDate) => {
         const resultTime = new Date(resultDate).getTime();
         const timePassed = currentTime - resultTime;
         return timePassed < 48 * 60 * 60 * 1000;
-    };
-
-    const handleGrievanceClick = (subjectId) => {
-        setSelectedSubjectId(subjectId);
-        modal?.show();
-    };
-
-    const confirmGrievance = async () => {
-        if (!selectedSubjectId) return;
-        try {
-            const response = await fetch('http://localhost:5000/api/grievance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subjectId: selectedSubjectId })
-            });
-
-            const result = await response.json();
-            alert(result.message || "Grievance submitted!");
-        } catch (err) {
-            console.error(err);
-            alert("Failed to submit grievance. Try again.");
-        } finally {
-            modal?.hide();
-            setSelectedSubjectId(null);
-        }
     };
 
     return (
@@ -72,25 +35,6 @@ const Dashboard = ({ theme }) => {
             color: theme === 'dark' ? '#f0f0f0' : '#000',
             minHeight: '100vh',
         }}>
-            {/* Bootstrap Modal */}
-            <div className="modal fade" id="grievanceModal" tabIndex="-1" aria-hidden="true">
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title">Confirm Grievance</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" />
-                        </div>
-                        <div className="modal-body">
-                            Are you sure you want to raise a grievance for this subject?
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" className="btn btn-danger" onClick={confirmGrievance}>Yes, Raise</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Alert */}
             <div style={{
                 background: '#ffe6e6',
@@ -127,7 +71,7 @@ const Dashboard = ({ theme }) => {
                                 <p><strong>Marks:</strong> {subject.marks_obtained}</p>
                                 <button
                                     disabled={disabled}
-                                    onClick={() => handleGrievanceClick(subject.id)}
+                                    onClick={() => navigate(`/raise-grievance/${subject.id}`)}
                                     className={`btn ${disabled ? 'btn-secondary' : 'btn-primary'}`}
                                     style={{ marginTop: '10px' }}
                                     title={disabled ? "Grievance window closed (48hr passed)" : "Raise grievance"}

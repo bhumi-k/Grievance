@@ -14,7 +14,6 @@ app.get('/', (req, res) => {
   res.send('Backend is running ✅');
 });
 
-
 // Register Route
 app.post('/api/register', async (req, res) => {
   const { name, email, password, rollNo, class: className } = req.body;
@@ -50,7 +49,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Login Route (simplified, no role)
+// Login Route
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -84,26 +83,56 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// Get all subjects for the logged-in student (hardcoded roll_no for now)
+// Fetch all subjects for a student
 app.get('/api/subjects', (req, res) => {
   const rollNo = req.query.rollNo;
   if (!rollNo) return res.status(400).json({ error: 'Roll number required' });
 
-  const query = `SELECT * FROM subjects WHERE roll_no = ?`;
+  const query = `
+    SELECT 
+      s.*, 
+      EXISTS (
+        SELECT 1 
+        FROM grievances g 
+        WHERE g.subject_id = s.id
+      ) AS has_grievance
+    FROM subjects s
+    WHERE s.roll_no = ?
+  `;
 
   db.query(query, [rollNo], (err, results) => {
     if (err) {
       console.error('❌ Error fetching subjects:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
-    res.json(results);
+
+    // Convert 0/1 to boolean
+    const formatted = results.map(row => ({
+      ...row,
+      has_grievance: Boolean(row.has_grievance),
+    }));
+
+    res.json(formatted);
   });
 });
 
+// Get a single subject by id (used for pre-filling grievance form)
+app.get('/api/subject/:id', (req, res) => {
+  const subjectId = req.params.id;
+
+  const query = `SELECT * FROM subjects WHERE id = ?`;
+
+  db.query(query, [subjectId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Server error' });
+    if (results.length === 0) return res.status(404).json({ error: 'Subject not found' });
+
+    res.json(results[0]);
+  });
+});
 
 // Raise grievance
 app.post('/api/grievance', (req, res) => {
-  const { subjectId } = req.body;
+  const { subjectId, complaintDate, natureOfComplaint } = req.body;
 
   if (!subjectId) {
     return res.status(400).json({ error: 'Subject ID is required' });
@@ -125,20 +154,23 @@ app.post('/api/grievance', (req, res) => {
     }
 
     const insertQuery = `
-      INSERT INTO grievances (subject_id, student_name, roll_no)
-      VALUES (?, ?, ?)
+      INSERT INTO grievances (subject_id, student_name, roll_no, complaint_date, nature_of_complaint)
+      VALUES (?, ?, ?, ?, ?)
     `;
 
-    db.query(insertQuery, [subjectId, subject.student_name, subject.roll_no], (err) => {
-      if (err) {
-        console.error('❌ Error inserting grievance:', err);
-        return res.status(500).json({ error: 'Could not raise grievance' });
+    db.query(
+      insertQuery,
+      [subjectId, subject.student_name, subject.roll_no, complaintDate, natureOfComplaint],
+      (err) => {
+        if (err) {
+          console.error('❌ Error inserting grievance:', err);
+          return res.status(500).json({ error: 'Could not raise grievance' });
+        }
+        res.json({ message: 'Grievance raised successfully!' });
       }
-      res.json({ message: 'Grievance raised successfully!' });
-    });
+    );
   });
 });
-
 
 // Start server
 app.listen(PORT, () => {
