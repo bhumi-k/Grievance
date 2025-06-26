@@ -11,8 +11,8 @@ const db = mysql.createConnection({
 db.connect((err) => {
   if (err) throw err;
   console.log('✅ Connected to MySQL');
-  
-  // Create users table dynamically
+
+  // USERS table
   const createUsersTable = `
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -27,9 +27,46 @@ CREATE TABLE IF NOT EXISTS users (
 );
 `;
 
+  // SUBJECTS table
+  const createSubjectsTable = `
+  CREATE TABLE IF NOT EXISTS subjects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_name VARCHAR(100),
+    student_name VARCHAR(100),
+    roll_no VARCHAR(20),
+    marks_obtained INT,
+    result_date DATETIME,
+    faculty_name VARCHAR(100),
+    assignment_no VARCHAR(50)
+  );
+  `;
+
+
+  // GRIEVANCES table
+  const createGrievancesTable = `
+  CREATE TABLE IF NOT EXISTS grievances (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_id INT,
+    student_name VARCHAR(100),
+    roll_no VARCHAR(20),
+    grievance_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+  );
+  `;
+
   db.query(createUsersTable, (err) => {
     if (err) console.error('❌ Error creating users table:', err);
     else console.log('✅ Users table is ready');
+  });
+
+  db.query(createSubjectsTable, (err) => {
+    if (err) console.error('❌ Error creating subjects table:', err);
+    else console.log('✅ Subjects table is ready');
+  });
+
+  db.query(createGrievancesTable, (err) => {
+    if (err) console.error('❌ Error creating grievances table:', err);
+    else console.log('✅ Grievances table is ready');
   });
 });
 

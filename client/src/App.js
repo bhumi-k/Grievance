@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Register from './components/Register';
 import Login from './components/Login';
 import Header from './components/Header';
+import Dashboard from './components/Dashboard';
+import GrievanceForm from './components/GrievanceForm';
 
 function App() {
   const [theme, setTheme] = useState('light');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-  const logout = () => setIsLoggedIn(false);
+
+  const logout = () => {
+    localStorage.removeItem('rollNo');
+    setIsLoggedIn(false);
+  };
+
+  useEffect(() => {
+    const rollNo = localStorage.getItem('rollNo');
+    if (rollNo) {
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   return (
     <div className={`theme-${theme}`}>
@@ -49,6 +62,10 @@ function App() {
                 </div>
               }
             />
+            <Route path="/dashboard" element={<Dashboard theme={theme} />} />
+
+            {/* ✅ Updated route to accept subject ID */}
+            <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
           </Routes>
         </main>
       </Router>
