@@ -13,9 +13,9 @@ const Login = ({ setIsLoggedIn }) => {
     try {
       const res = await axios.post('/api/login', { email, password });
       alert(res.data.message);
-
+      localStorage.setItem('rollNo', res.data.user.roll_no);
       setIsLoggedIn(true);     // ✅ update global state
-      navigate('/');           // ✅ redirect to home
+      navigate('/dashboard');           // ✅ redirect to home
     } catch (err) {
       alert(err.response?.data?.message || 'Login failed');
     }
