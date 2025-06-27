@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Register from './components/Register';
@@ -6,16 +5,12 @@ import Login from './components/Login';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import GrievanceForm from './components/GrievanceForm';
-import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState('light');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-
-  const toggleTheme = () =>
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-
+  const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
 
   const logout = () => {
     localStorage.removeItem('rollNo');
@@ -29,7 +24,6 @@ function App() {
     }
   }, []);
 
-
   return (
     <div className={`theme-${theme}`}>
       <Router>
@@ -40,31 +34,8 @@ function App() {
           logout={logout}
         />
 
-        <main style={{ minHeight: "80vh" }}>
+        <main style={{ minHeight: '80vh' }}>
           <Routes>
-
-            <Route path="/" element={
-              <div style={{ padding: "40px", textAlign: "center" }}>
-                <h2>Welcome to the Portal</h2>
-                {isLoggedIn ? (
-                  <p>You are logged in ✅</p>
-                ) : (
-                  <p>Please login or register</p>
-                )}
-              </div>
-            } />
-
-<Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-
-            <Route path="/profile" element={
-              <div style={{ padding: "40px" }}>
-                <h2>Your Profile</h2>
-                <p>Welcome, user!</p>
-              </div>
-            } />
             <Route
               path="/register"
               element={<Register setIsLoggedIn={setIsLoggedIn} />}
@@ -95,7 +66,6 @@ function App() {
 
             {/* ✅ Updated route to accept subject ID */}
             <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
-
           </Routes>
         </main>
       </Router>
