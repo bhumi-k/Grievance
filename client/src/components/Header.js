@@ -27,7 +27,7 @@ const Header = ({ theme, toggleTheme, isLoggedIn, logout }) => {
       padding: '12px 30px',
       alignItems: 'center'
     }}>
-      <h2 style={{ margin: 0 }}>Student Portal</h2>
+      <h2 style={{ margin: 0 }}>Grievance Portal</h2>
 
       <nav style={{ display: 'flex', alignItems: 'center', gap: '20px', position: 'relative' }}>
         {!isLoggedIn ? (
