@@ -16,11 +16,6 @@ function App() {
   const toggleTheme = () =>
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
-  const logout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem("role");
-  };
-  const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
 
   const logout = () => {
     localStorage.removeItem('rollNo');
