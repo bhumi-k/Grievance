@@ -10,27 +10,12 @@ const Login = ({ setIsLoggedIn }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const res = await axios.post('/api/login', { email, password });
-
       alert(res.data.message);
-
-
-      // Save login status and role
-      setIsLoggedIn(true);
-      localStorage.setItem('role', res.data.user.role); // ⬅️ Save role in localStorage
-
-      // Redirect based on role
-      if (res.data.user.role === 'admin') {
-        navigate('/admin-dashboard');
-      } else {
-        navigate('/user-dashboard');
-      }
       localStorage.setItem('rollNo', res.data.user.roll_no);
       setIsLoggedIn(true);     // ✅ update global state
       navigate('/dashboard');           // ✅ redirect to home
-
     } catch (err) {
       alert(err.response?.data?.message || 'Login failed');
     }
