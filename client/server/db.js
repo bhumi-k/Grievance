@@ -1,5 +1,5 @@
-const mysql = require('mysql2');
-require('dotenv').config();
+const mysql = require("mysql2");
+require("dotenv").config();
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -10,8 +10,8 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) throw err;
-  console.log('✅ Connected to MySQL');
-  
+  console.log("✅ Connected to MySQL");
+
   // Create users table dynamically
   const createUsersTable = `
 CREATE TABLE IF NOT EXISTS users (
@@ -21,15 +21,15 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255),
   roll_no VARCHAR(20),
   class VARCHAR(50),
-  role ENUM('admin', 'user') DEFAULT 'user',
+  role ENUM('user', 'admin', 'faculty', 'ceo', 'hod', 'director') DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 `;
 
   db.query(createUsersTable, (err) => {
-    if (err) console.error('❌ Error creating users table:', err);
-    else console.log('✅ Users table is ready');
+    if (err) console.error("❌ Error creating users table:", err);
+    else console.log("✅ Users table is ready");
   });
 });
 

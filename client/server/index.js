@@ -14,54 +14,95 @@ app.get('/', (req, res) => {
   res.send('Backend is running ✅');
 });
 
-// Register Route
+// Student/Admin Self-Registration Route
 app.post('/api/register', async (req, res) => {
-  const { name, email, password, rollNo, class: className } = req.body;
-  console.log('📥 Register request:', req.body);
+  const { name, email, password, rollNo, class: className, adminCode } = req.body;
 
-  if (!name || !email || !password || !rollNo || !className) {
-    return res.status(400).json({ message: 'All fields are required' });
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'Name, email, and password are required' });
+  }
+
+  const isAdmin = adminCode === process.env.ADMIN_SECRET;
+  const role = isAdmin ? 'admin' : 'user';
+
+  if (!isAdmin && (!rollNo || !className)) {
+    return res.status(400).json({ message: 'Roll No. and Class are required for students' });
   }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const query = `
-      INSERT INTO users (name, email, password, roll_no, class)
-      VALUES (?, ?, ?, ?, ?)
-    `;
+    const query = isAdmin
+      ? `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`
+      : `INSERT INTO users (name, email, password, roll_no, class, role) VALUES (?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [name, email, hashedPassword, rollNo, className], (err, result) => {
+    const values = isAdmin
+      ? [name, email, hashedPassword, role]
+      : [name, email, hashedPassword, rollNo, className, role];
+
+    db.query(query, values, (err, result) => {
       if (err) {
-        console.error('❌ Error inserting user:', err);
+        console.error('❌ Registration error:', err);
         if (err.code === 'ER_DUP_ENTRY') {
           return res.status(400).json({ message: 'Email already exists' });
         }
         return res.status(500).json({ message: 'Server error' });
       }
-
-      console.log('✅ User registered');
-      return res.status(201).json({ message: '✅ Registration successful' });
+      return res.status(201).json({ message: `✅ Registered successfully as ${role}` });
     });
   } catch (error) {
-    console.error('❌ Registration error:', error);
+    console.error('❌ Hashing error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-// Login Route (simplified, no role)
+// Admin Registers Other Roles
+app.post('/api/admin/register-role', async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  if (!name || !email || !password || !role) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  if (!['faculty', 'hod', 'ceo', 'director'].includes(role)) {
+    return res.status(400).json({ message: 'Invalid role provided' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const query = `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`;
+    const values = [name, email, hashedPassword, role];
+
+    db.query(query, values, (err, result) => {
+      if (err) {
+        console.error('❌ Admin role register error:', err);
+        if (err.code === 'ER_DUP_ENTRY') {
+          return res.status(400).json({ message: 'Email already exists' });
+        }
+        return res.status(500).json({ message: 'Server error' });
+      }
+      return res.status(201).json({ message: `✅ ${role} registered successfully` });
+    });
+  } catch (error) {
+    console.error('❌ Hashing error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Login Route
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'All fields are required' });
+    return res.status(400).json({ message: 'Email and password are required' });
   }
 
   const query = `SELECT * FROM users WHERE email = ?`;
 
   db.query(query, [email], async (err, results) => {
     if (err) {
-      console.error('Login error:', err);
+      console.error('❌ Login DB error:', err);
       return res.status(500).json({ message: 'Server error' });
     }
 
@@ -78,12 +119,16 @@ app.post('/api/login', (req, res) => {
 
     return res.status(200).json({
       message: 'Login successful',
-      user: { id: user.id, name: user.name, email: user.email }
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
