@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS users (
     marks_obtained INT,
     result_date DATETIME,
     faculty_name VARCHAR(100),
-    assignment_no VARCHAR(50)
+    assignment_no VARCHAR(50),
+    subject_code VARCHAR(20) DEFAULT NULL
   );
   `;
 
@@ -50,7 +51,12 @@ CREATE TABLE IF NOT EXISTS users (
     student_name VARCHAR(100),
     roll_no VARCHAR(20),
     grievance_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+    complaint_date date DEFAULT NULL,
+    nature_of_complaint varchar(255) DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY subject_id (subject_id)
+
   );
   `;
 
