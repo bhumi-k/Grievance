@@ -30,14 +30,15 @@ CREATE TABLE IF NOT EXISTS users (
   // SUBJECTS table
   const createSubjectsTable = `
   CREATE TABLE IF NOT EXISTS subjects (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+     id INT AUTO_INCREMENT PRIMARY KEY,
     subject_name VARCHAR(100),
     student_name VARCHAR(100),
     roll_no VARCHAR(20),
     marks_obtained INT,
     result_date DATETIME,
     faculty_name VARCHAR(100),
-    assignment_no VARCHAR(50)
+    assignment_no VARCHAR(50),
+    subject_code VARCHAR(20) DEFAULT NULL
   );
   `;
 
@@ -45,12 +46,15 @@ CREATE TABLE IF NOT EXISTS users (
   // GRIEVANCES table
   const createGrievancesTable = `
   CREATE TABLE IF NOT EXISTS grievances (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    subject_id INT,
-    student_name VARCHAR(100),
-    roll_no VARCHAR(20),
-    grievance_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+   id int(11) NOT NULL AUTO_INCREMENT,
+  subject_id varchar(11) DEFAULT NULL,
+  student_name varchar(100) DEFAULT NULL,
+  roll_no varchar(20) DEFAULT NULL,
+  grievance_time timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  complaint_date date DEFAULT NULL,
+  nature_of_complaint varchar(255) DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY subject_id (subject_id)
   );
   `;
 
