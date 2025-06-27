@@ -78,18 +78,10 @@ app.post('/api/login', (req, res) => {
 
     return res.status(200).json({
       message: 'Login successful',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      user: { id: user.id, name: user.name, email: user.email, roll_no: user.roll_no }
     });
   });
 });
-
-
-
 
 // Fetch all subjects for a student
 app.get('/api/subjects', (req, res) => {
