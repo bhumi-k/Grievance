@@ -16,6 +16,7 @@ const Login = ({ setIsLoggedIn }) => {
 
       alert(res.data.message);
 
+
       // Save login status and role
       setIsLoggedIn(true);
       localStorage.setItem('role', res.data.user.role); // ⬅️ Save role in localStorage
@@ -26,6 +27,10 @@ const Login = ({ setIsLoggedIn }) => {
       } else {
         navigate('/user-dashboard');
       }
+      localStorage.setItem('rollNo', res.data.user.roll_no);
+      setIsLoggedIn(true);     // ✅ update global state
+      navigate('/dashboard');           // ✅ redirect to home
+
     } catch (err) {
       alert(err.response?.data?.message || 'Login failed');
     }

@@ -81,6 +81,7 @@ const Register = () => {
         <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
         <input name="confirmPassword" type="password" placeholder="Confirm Password" onChange={handleChange} required />
 
+
         {roleType === 'student' && (
           <>
             <input name="rollNo" placeholder="Roll No." onChange={handleChange} required />
@@ -92,6 +93,13 @@ const Register = () => {
           <input name="adminCode" placeholder="Admin Code" onChange={handleChange} required />
         )}
 
+        <input name="rollNo" placeholder="Roll No." onChange={handleChange} required />
+        <select name="class" onChange={handleChange} required>
+          <option value="">Select Class</option>
+          <option value="MCA">MCA</option>
+          <option value="MBA">MBA</option>
+        </select>
+main
         <button type="submit">Register</button>
       </form>
     </div>
