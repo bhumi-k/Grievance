@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
     complaint_date date DEFAULT NULL,
     nature_of_complaint varchar(255) DEFAULT NULL,
-    PRIMARY KEY (id),
     KEY subject_id (subject_id)
 
   );
