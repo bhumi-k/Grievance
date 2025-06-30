@@ -5,6 +5,8 @@ import Login from './components/Login';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import GrievanceForm from './components/GrievanceForm';
+import FacultyDashboard from './components/faculty/Dashboard';
+import ResolveGrievance from './components/faculty/ResolveGrievance';
 
 function App() {
   const [theme, setTheme] = useState('light');
@@ -66,6 +68,8 @@ function App() {
 
             {/* ✅ Updated route to accept subject ID */}
             <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
+            <Route path="/faculty-dashboard" element={<FacultyDashboard theme={theme} />} />
+            <Route path="/resolve/:id" element={<ResolveGrievance theme={theme} />} />
           </Routes>
         </main>
       </Router>

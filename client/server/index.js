@@ -172,6 +172,65 @@ app.post('/api/grievance', (req, res) => {
   });
 });
 
+// Fetch all grievances for faculty
+app.get('/api/grievances', (req, res) => {
+  const query = `
+    SELECT 
+      g.id, g.subject_id, g.student_name, g.roll_no, g.complaint_date, g.nature_of_complaint, 
+      s.subject_name, s.faculty_name
+    FROM grievances g
+    JOIN subjects s ON g.subject_id = s.id
+    ORDER BY g.complaint_date DESC
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching grievances:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+// Resolve grievance
+// get grievance details by ID
+app.get('/api/grievance/:id', (req, res) => {
+  const grievanceId = req.params.id;
+  const query = `
+    SELECT g.*, s.subject_name, s.student_name, s.roll_no, s.marks_obtained 
+    FROM grievances g
+    JOIN subjects s ON g.subject_id = s.id
+    WHERE g.id = ?
+  `;
+  db.query(query, [grievanceId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Server error' });
+    if (results.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(results[0]);
+  });
+});
+
+// Resolve grievance by updating marks
+app.put('/api/grievance/:id/resolve', (req, res) => {
+  const grievanceId = req.params.id;
+  const { newMarks } = req.body;
+
+  const getSubjectIdQuery = `SELECT subject_id FROM grievances WHERE id = ?`;
+  db.query(getSubjectIdQuery, [grievanceId], (err, rows) => {
+    if (err || rows.length === 0) {
+      return res.status(404).json({ error: 'Grievance not found' });
+    }
+
+    const subjectId = rows[0].subject_id;
+    const updateQuery = `UPDATE subjects SET marks_obtained = ? WHERE id = ?`;
+
+    db.query(updateQuery, [newMarks, subjectId], (err2) => {
+      if (err2) return res.status(500).json({ error: 'Failed to update marks' });
+      res.json({ message: 'Marks updated successfully' });
+    });
+  });
+});
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
