@@ -53,8 +53,8 @@ const FacultyDashboard = ({ theme }) => {
             <aside style={sidebarStyle}>
                 <h3 style={{ marginBottom: '20px' }}>Faculty Panel</h3>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
-                    <li>📋 Inbox</li>
-                    <li>More coming...</li>
+                    <li> <button onClick={() => navigate('/faculty-dashboard')} style={{ border: 0, padding: 3, margin: 5, width: '100%' }}>📋 Inbox </button></li>
+                    <li> <button onClick={() => navigate('/')} style={{ border: 0, padding: 3, margin: 5, width: '100%' }}>🏠 Home</button></li>
                 </ul>
             </aside>
 
