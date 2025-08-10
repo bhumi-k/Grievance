@@ -1,25 +1,38 @@
-import React, { useState } from 'react';
-import './Form.css';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import "./Form.css";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const Login = ({ setIsLoggedIn }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Login = ({ setIsLoggedIn, setRole }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('/api/login', { email, password });
-      alert(res.data.message);
-      localStorage.setItem('rollNo', res.data.user.roll_no);
-      setIsLoggedIn(true);     // ✅ update global state
-      navigate('/dashboard');           // ✅ redirect to home
-    } catch (err) {
-      alert(err.response?.data?.message || 'Login failed');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post("/api/login", { email, password });
+    const user = res.data.user;
+
+    alert(res.data.message);
+
+    // Save all needed info to localStorage
+    localStorage.setItem("user", JSON.stringify(user));
+
+    setRole(user.role);
+    setIsLoggedIn(true);
+
+    if (user.role === 'admin') {
+      navigate('/admin-dashboard');
+    } else {
+      navigate('/dashboard');
     }
-  };
+  } catch (err) {
+    alert(err.response?.data?.message || "Login failed");
+  }
+};
+
+
 
   return (
     <div className="form-container">
@@ -29,14 +42,14 @@ const Login = ({ setIsLoggedIn }) => {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
         <button type="submit">Login</button>

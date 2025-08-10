@@ -33,16 +33,36 @@ const Register = () => {
     <div className="form-container">
       <form className="form" onSubmit={handleSubmit}>
         <h2>Register</h2>
+        <select name="role" style={{ padding: '8px 16px' }} onChange={handleChange} required>
+  <option value="">Select Role</option>
+  <option value="user">Student</option>
+  <option value="admin">Admin</option>
+</select>
+        
+
         <input name="name" placeholder="Name" onChange={handleChange} required />
         <input name="email" type="email" placeholder="Email" onChange={handleChange} required />
         <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
         <input name="confirmPassword" type="password" placeholder="Confirm Password" onChange={handleChange} required />
-        <input name="rollNo" placeholder="Roll No." onChange={handleChange} required />
-        <select name="class" onChange={handleChange} required>
-          <option value="">Select Class</option>
-          <option value="MCA">MCA</option>
-          <option value="MBA">MBA</option>
-        </select>
+        {formData.role === 'user' && (
+          <>
+            <input name="rollNo" placeholder="Roll No." onChange={handleChange} required />
+            <select name="class" onChange={handleChange} required>
+              <option value="">Select Class</option>
+              <option value="MCA">MCA</option>
+              <option value="MBA">MBA</option>
+            </select>
+          </>
+        )}
+{formData.role === 'admin' && (
+          <input
+            name="adminCode"
+            placeholder="Admin Code"
+            onChange={handleChange}
+            required
+          />
+        )}
+
         <button type="submit">Register</button>
       </form>
     </div>
