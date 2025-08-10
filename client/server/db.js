@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255),
   roll_no VARCHAR(20),
   class VARCHAR(50),
-  role ENUM('admin', 'user') DEFAULT 'user',
+role ENUM('admin', 'user', 'faculty', 'hod', 'ceo', 'director') DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
