@@ -8,31 +8,31 @@ const Login = ({ setIsLoggedIn, setRole }) => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await axios.post("/api/login", { email, password });
-    const user = res.data.user;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post("/api/login", { email, password });
+      const user = res.data.user;
 
-    alert(res.data.message);
+      alert(res.data.message);
 
-    // Save all needed info to localStorage
-    localStorage.setItem("user", JSON.stringify(user));
+      // ✅ Save full user object for Profile page
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("role", user.role);
+      localStorage.setItem("rollNo", user.roll_no);
 
-    setRole(user.role);
-    setIsLoggedIn(true);
+      setRole(user.role);
+      setIsLoggedIn(true);
 
-    if (user.role === 'admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/dashboard');
+      if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Login failed");
     }
-  } catch (err) {
-    alert(err.response?.data?.message || "Login failed");
-  }
-};
-
-
+  };
 
   return (
     <div className="form-container">
