@@ -12,6 +12,9 @@ import Dashboard from "./components/Dashboard";
 import GrievanceForm from "./components/GrievanceForm";
 import AdminDashboard from "./components/AdminDashboard";
 import Profile from "./components/Profile";
+import FacultyDashboard from './components/faculty/Dashboard';
+import ResolveGrievance from './components/faculty/ResolveGrievance';
+
 function App() {
   const [theme, setTheme] = useState("light");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -76,6 +79,8 @@ function App() {
 
             {/* ✅ Updated route to accept subject ID */}
             <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
+            <Route path="/faculty-dashboard" element={<FacultyDashboard theme={theme} />} />
+            <Route path="/resolve/:id" element={<ResolveGrievance theme={theme} />} />
           </Routes>
         </main>
       </Router>

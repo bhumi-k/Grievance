@@ -46,15 +46,16 @@ role ENUM('admin', 'user', 'faculty', 'hod', 'ceo', 'director') DEFAULT 'user',
   // GRIEVANCES table
   const createGrievancesTable = `
   CREATE TABLE IF NOT EXISTS grievances (
-   id int(11) NOT NULL AUTO_INCREMENT,
-  subject_id varchar(11) DEFAULT NULL,
-  student_name varchar(100) DEFAULT NULL,
-  roll_no varchar(20) DEFAULT NULL,
-  grievance_time timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  complaint_date date DEFAULT NULL,
-  nature_of_complaint varchar(255) DEFAULT NULL,
-  PRIMARY KEY (id),
-  KEY subject_id (subject_id)
+
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_id INT,
+    student_name VARCHAR(100),
+    roll_no VARCHAR(20),
+    grievance_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+    complaint_date date DEFAULT NULL,
+    nature_of_complaint varchar(255) DEFAULT NULL,
+    KEY subject_id (subject_id)
   );
   `;
 
