@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255),
   roll_no VARCHAR(20),
   class VARCHAR(50),
-  role ENUM('admin', 'user') DEFAULT 'user',
+role ENUM('admin', 'user', 'faculty', 'hod', 'ceo', 'director') DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS users (
   // SUBJECTS table
   const createSubjectsTable = `
   CREATE TABLE IF NOT EXISTS subjects (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+     id INT AUTO_INCREMENT PRIMARY KEY,
     subject_name VARCHAR(100),
     student_name VARCHAR(100),
     roll_no VARCHAR(20),
@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS users (
   // GRIEVANCES table
   const createGrievancesTable = `
   CREATE TABLE IF NOT EXISTS grievances (
+
     id INT AUTO_INCREMENT PRIMARY KEY,
     subject_id INT,
     student_name VARCHAR(100),
@@ -55,7 +56,6 @@ CREATE TABLE IF NOT EXISTS users (
     complaint_date date DEFAULT NULL,
     nature_of_complaint varchar(255) DEFAULT NULL,
     KEY subject_id (subject_id)
-
   );
   `;
 

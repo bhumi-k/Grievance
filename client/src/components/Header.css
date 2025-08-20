@@ -63,3 +63,11 @@
 .dropdown-menu li a:hover {
   background-color: #f0f0f0;
 }
+header {
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+button {
+  background: var(--bg-color);
+  color: var(--text-color);
+}

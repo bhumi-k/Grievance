@@ -16,22 +16,40 @@ app.get('/', (req, res) => {
 
 // Register Route
 app.post('/api/register', async (req, res) => {
-  const { name, email, password, rollNo, class: className } = req.body;
+  const { name, email, password, rollNo, class: className, adminCode, role } = req.body;
   console.log('📥 Register request:', req.body);
 
-  if (!name || !email || !password || !rollNo || !className) {
-    return res.status(400).json({ message: 'All fields are required' });
+  // Check common required fields
+  if (!name || !email || !password || !role) {
+    return res.status(400).json({ message: 'Name, email, password, and role are required' });
+  }
+
+  // Admin-specific validation
+  if (role === 'admin') {
+    if (!adminCode || adminCode !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ message: 'Invalid or missing admin code' });
+    }
+  }
+
+  // Student-specific validation
+  if (role === 'user') {
+    if (!rollNo || !className) {
+      return res.status(400).json({ message: 'Roll No. and Class are required for students' });
+    }
   }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const query = `
-      INSERT INTO users (name, email, password, roll_no, class)
-      VALUES (?, ?, ?, ?, ?)
-    `;
+    const query = role === 'admin'
+      ? `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`
+      : `INSERT INTO users (name, email, password, roll_no, class, role) VALUES (?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [name, email, hashedPassword, rollNo, className], (err, result) => {
+    const values = role === 'admin'
+      ? [name, email, hashedPassword, role]
+      : [name, email, hashedPassword, rollNo, className, role];
+
+    db.query(query, values, (err, result) => {
       if (err) {
         console.error('❌ Error inserting user:', err);
         if (err.code === 'ER_DUP_ENTRY') {
@@ -40,14 +58,15 @@ app.post('/api/register', async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
       }
 
-      console.log('✅ User registered');
-      return res.status(201).json({ message: '✅ Registration successful' });
+      console.log(`✅ Registered as ${role}`);
+      return res.status(201).json({ message: `✅ Registered successfully as ${role}` });
     });
   } catch (error) {
     console.error('❌ Registration error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 // Login Route
 app.post('/api/login', (req, res) => {
@@ -77,10 +96,46 @@ app.post('/api/login', (req, res) => {
     }
 
     return res.status(200).json({
-      message: 'Login successful',
-      user: { id: user.id, name: user.name, email: user.email, roll_no: user.roll_no }
-    });
+  message: 'Login successful',
+  user: {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    roll_no: user.roll_no,
+    role: user.role  // ✅ This is what your frontend needs
+  }
+});
+
   });
+});
+// Admin adds Faculty/HOD/CEO/Director
+app.post('/api/admin/register-role', async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  if (!name || !email || !password || !role) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const query = `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`;
+    const values = [name, email, hashedPassword, role];
+
+    db.query(query, values, (err, result) => {
+      if (err) {
+        console.error('❌ Error inserting role:', err);
+        if (err.code === 'ER_DUP_ENTRY') {
+          return res.status(400).json({ message: 'Email already exists' });
+        }
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      return res.status(201).json({ message: `${role} registered successfully` });
+    });
+  } catch (error) {
+    console.error('❌ Registration error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 // Fetch all subjects for a student
@@ -234,4 +289,57 @@ app.put('/api/grievance/:id/resolve', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+
+// Update Profile (Name, Email, Password)
+app.put('/api/users/:id', async (req, res) => {
+  const { name, email, password } = req.body;
+  const { id } = req.params;
+
+  if (!name || !email) {
+    return res.status(400).json({ message: 'Name and email are required' });
+  }
+
+  try {
+    let query, values;
+    if (password && password.trim() !== '') {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      query = `UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?`;
+      values = [name, email, hashedPassword, id];
+    } else {
+      query = `UPDATE users SET name = ?, email = ? WHERE id = ?`;
+      values = [name, email, id];
+    }
+
+    db.query(query, values, (err, result) => {
+      if (err) {
+        console.error('❌ Profile update error:', err);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      return res.json({ message: 'Profile updated successfully' });
+    });
+  } catch (error) {
+    console.error('❌ Error updating profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+// Get user profile by ID
+app.get('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+
+  const query = `SELECT id, name, email, roll_no, role FROM users WHERE id = ?`;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching profile:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(results[0]);
+  });
 });
