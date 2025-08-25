@@ -1,78 +1,32 @@
-import React, { useState } from 'react';
-import './Form.css';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./Form.css";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('register');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'faculty',
-  });
+  const [grievanceCount, setGrievanceCount] = useState(0);
 
-  const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    const { name, email, password, role } = formData;
-
-    if (!name || !email || !password || !role) {
-      alert('All fields are required');
-      return;
-    }
-
-    try {
-      const res = await axios.post('/api/admin/register-role', formData);
-      alert(res.data.message);
-      setFormData({ name: '', email: '', password: '', role: 'faculty' });
-    } catch (err) {
-      alert(err.response?.data?.message || 'Registration failed');
-    }
-  };
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await axios.get("/api/grievances/count");
+        setGrievanceCount(res.data.total);
+      } catch (err) {
+        console.error("❌ Error fetching grievance count:", err);
+      }
+    };
+    fetchCount();
+  }, []);
 
   return (
     <div className="admin-dashboard">
-      <aside className="sidebar">
-        <button className={activeTab === 'register' ? 'active' : ''} onClick={() => setActiveTab('register')}>
-          ➕ Register
-        </button>
-        <button className={activeTab === 'inbox' ? 'active' : ''} onClick={() => setActiveTab('inbox')}>
-          📥 Inbox
-        </button>
-      </aside>
+      <h2>📊 Admin Dashboard</h2>
 
-      <main className="content">
-        {activeTab === 'register' && (
-          <div className="register-tab">
-            <h2>Register a Role</h2>
-            <form onSubmit={handleRegister} className="admin-form">
-              <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
-              <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-              <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
-              <select name="role" value={formData.role} onChange={handleChange} required>
-                <option value="faculty">Faculty</option>
-                <option value="hod">HOD</option>
-                <option value="ceo">CEO</option>
-                <option value="director">Director</option>
-              </select>
-              <button type="submit">Register Role</button>
-            </form>
-          </div>
-        )}
-
-        {activeTab === 'inbox' && (
-          <div className="inbox-tab">
-            <h2>Inbox</h2>
-            <p>No messages yet.</p>
-          </div>
-        )}
-      </main>
+      <div className="cards">
+        <div className="card">
+          <h3>Total Grievances</h3>
+          <p>{grievanceCount}</p>
+        </div>
+      </div>
     </div>
   );
 };

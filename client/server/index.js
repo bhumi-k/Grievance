@@ -343,3 +343,35 @@ app.get('/api/users/:id', (req, res) => {
     res.json(results[0]);
   });
 });
+app.get("/api/grievances", (req, res) => {
+  const query = `
+    SELECT g.id, g.student_name, g.roll_no, g.complaint_date, 
+       g.nature_of_complaint, u.class AS stream
+FROM grievances g
+JOIN (
+  SELECT roll_no, MAX(id) AS latest_user_id
+  FROM users
+  GROUP BY roll_no
+) latest ON g.roll_no = latest.roll_no
+JOIN users u ON u.id = latest.latest_user_id
+ORDER BY g.complaint_date DESC;
+
+
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("❌ Error fetching grievances:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+    res.json(results);
+  });
+});
+app.get('/api/grievances/count', (req, res) => {
+  const query = 'SELECT COUNT(*) AS total FROM grievances';
+  db.query(query, (err, results) => {
+    if (err) return res.status(500).json({ message: 'Server error' });
+    res.json({ total: results[0].total });
+  });
+});
+

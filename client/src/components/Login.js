@@ -24,8 +24,9 @@ const Login = ({ setIsLoggedIn, setRole }) => {
       setRole(user.role);
       setIsLoggedIn(true);
 
+      // ✅ FIXED: Correct admin redirect
       if (user.role === "admin") {
-        navigate("/admin-dashboard");
+        navigate("/admin/dashboard");  // correct route
       } else {
         navigate("/dashboard");
       }
@@ -59,3 +60,4 @@ const Login = ({ setIsLoggedIn, setRole }) => {
 };
 
 export default Login;
+  

@@ -10,10 +10,18 @@ import Login from "./components/Login";
 import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
 import GrievanceForm from "./components/GrievanceForm";
-import AdminDashboard from "./components/AdminDashboard";
 import Profile from "./components/Profile";
+import AdminDashboard from "./components/AdminDashboard";
+import AdminInbox from "./components/AdminInbox";
+import AdminRegister from "./components/AdminRegister";
+import AdminLayout from "./components/AdminLayout";
 import FacultyDashboard from './components/faculty/Dashboard';
 import ResolveGrievance from './components/faculty/ResolveGrievance';
+
+function RequireAdmin({ children }) {
+  const role = localStorage.getItem("role");
+  return role === "admin" ? children : <Navigate to="/login" />;
+}
 
 function App() {
   const [theme, setTheme] = useState("light");
@@ -25,13 +33,17 @@ function App() {
 
   const logout = () => {
     localStorage.removeItem("rollNo");
+    localStorage.removeItem("role");
     setIsLoggedIn(false);
+    setRole(null);
   };
 
   useEffect(() => {
     const rollNo = localStorage.getItem("rollNo");
+    const savedRole = localStorage.getItem("role");
     if (rollNo) {
       setIsLoggedIn(true);
+      setRole(savedRole);
     }
   }, []);
 
@@ -47,6 +59,7 @@ function App() {
 
         <main style={{ minHeight: "80vh" }}>
           <Routes>
+            {/* Public routes */}
             <Route
               path="/register"
               element={<Register setIsLoggedIn={setIsLoggedIn} theme={theme} />}
@@ -54,33 +67,50 @@ function App() {
             <Route
               path="/login"
               element={
-                <Login setIsLoggedIn={setIsLoggedIn} setRole={setRole} theme={theme}/>
+                <Login
+                  setIsLoggedIn={setIsLoggedIn}
+                  setRole={setRole}
+                  theme={theme}
+                />
               }
             />
-            <Route 
+            <Route
               path="/"
               element={
                 <div style={{ padding: "40px", textAlign: "center" }}>
                   <h2>Welcome to the Portal</h2>
                   <p>Please login or register</p>
                 </div>
-              } theme={theme}
+              }
             />
 
             <Route path="/dashboard" element={<Dashboard theme={theme} />} />
             <Route path="/profile" element={<Profile theme={theme} />} />
+            <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
 
+            {/* Admin routes */}
             <Route
-              path="/admin-dashboard"
+              path="/admin"
               element={
-                role === "admin" ? <AdminDashboard /> : <Navigate to="/login" />
-              }theme={theme}
-            />
+                <RequireAdmin>
+                  <AdminLayout />
+                </RequireAdmin>
+              }
+            >
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="register" element={<AdminRegister />} />
+              <Route path="inbox" element={<AdminInbox />} />
+            </Route>
+
+
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/" />} />
 
             {/* ✅ Updated route to accept subject ID */}
             <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
             <Route path="/faculty-dashboard" element={<FacultyDashboard theme={theme} />} />
             <Route path="/resolve/:id" element={<ResolveGrievance theme={theme} />} />
+
           </Routes>
         </main>
       </Router>
