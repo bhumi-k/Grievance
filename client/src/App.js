@@ -11,11 +11,12 @@ import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
 import GrievanceForm from "./components/GrievanceForm";
 import Profile from "./components/Profile";
-
 import AdminDashboard from "./components/AdminDashboard";
 import AdminInbox from "./components/AdminInbox";
 import AdminRegister from "./components/AdminRegister";
 import AdminLayout from "./components/AdminLayout";
+import FacultyDashboard from './components/faculty/Dashboard';
+import ResolveGrievance from './components/faculty/ResolveGrievance';
 
 function RequireAdmin({ children }) {
   const role = localStorage.getItem("role");
@@ -101,8 +102,15 @@ function App() {
               <Route path="inbox" element={<AdminInbox />} />
             </Route>
 
+
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" />} />
+
+            {/* ✅ Updated route to accept subject ID */}
+            <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
+            <Route path="/faculty-dashboard" element={<FacultyDashboard theme={theme} />} />
+            <Route path="/resolve/:id" element={<ResolveGrievance theme={theme} />} />
+
           </Routes>
         </main>
       </Router>
