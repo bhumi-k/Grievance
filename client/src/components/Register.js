@@ -19,20 +19,8 @@ const Register = () => {
     }));
   };
 
-  // ✅ Outlook Email Validation Function
-  const isOutlookEmail = (email) => {
-    return /^[a-zA-Z0-9._%+-]+@(svims-pune.edu.in)$/i.test(email);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // ✅ Check Outlook email
-    if (!isOutlookEmail(formData.email)) {
-      alert("Please use a valid SVIMS Outlook email address (e.g. @svims-pune.edu.in email id)");
-      return;
-    }
-
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
