@@ -17,7 +17,6 @@ app.get('/', (req, res) => {
 // Register Route
 app.post('/api/register', async (req, res) => {
   const { name, email, password, rollNo, class: className, adminCode, role } = req.body;
-  console.log('📥 Register request:', req.body);
 
   // Check common required fields
   if (!name || !email || !password || !role) {
@@ -58,7 +57,6 @@ app.post('/api/register', async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
       }
 
-      console.log(`✅ Registered as ${role}`);
       return res.status(201).json({ message: `✅ Registered successfully as ${role}` });
     });
   } catch (error) {
@@ -80,7 +78,7 @@ app.post('/api/login', (req, res) => {
 
   db.query(query, [email], async (err, results) => {
     if (err) {
-      console.error('Login error:', err);
+      console.error('❌ Login error:', err);
       return res.status(500).json({ message: 'Server error' });
     }
 
@@ -170,8 +168,7 @@ app.get('/api/subjects', (req, res) => {
       return res.status(500).json({ error: 'Internal server error' });
     }
 
-    console.log(`📋 Fetching subjects for rollNo: ${rollNo}`);
-    console.log(`📊 Found ${results.length} subjects:`, results);
+
 
     const formatted = results.map(row => ({
       ...row,
@@ -198,7 +195,12 @@ app.get('/api/subject/:id', (req, res) => {
       stu.name AS student_name,
       stu.roll_no AS student_roll,
       fac.name AS faculty_name,
-      fac.email AS faculty_email
+      fac.email AS faculty_email,
+      EXISTS (
+        SELECT 1 
+        FROM grievances g 
+        WHERE g.subject_id = s.id
+      ) AS has_grievance
     FROM subjects s
     JOIN users stu ON s.student_id = stu.id
     JOIN users fac ON s.faculty_id = fac.id
@@ -207,14 +209,16 @@ app.get('/api/subject/:id', (req, res) => {
 
   db.query(query, [subjectId], (err, results) => {
     if (err) {
-      console.error(err);
+      console.error('❌ Error fetching subject:', err);
       return res.status(500).json({ error: 'Server error' });
     }
     if (results.length === 0) {
       return res.status(404).json({ error: 'Subject not found' });
     }
 
-    res.json(results[0]);
+    const result = results[0];
+    result.has_grievance = Boolean(result.has_grievance);
+    res.json(result);
   });
 });
 
@@ -560,7 +564,7 @@ function insertSubjectRecord(subject_name, subject_code, assignment_no, student_
   const values = [
     subject_name,
     subject_code || null,
-    assignment_no || 'ASG001',
+    assignment_no || 'CCE1',
     student_id,
     faculty_id,
     marks_obtained || 0,

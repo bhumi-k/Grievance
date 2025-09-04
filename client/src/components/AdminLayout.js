@@ -18,6 +18,9 @@ const AdminLayout = () => {
             <li>
               <NavLink to="/admin/inbox" activeclassname="active">Inbox</NavLink>
             </li>
+            <li>
+              <NavLink to="/add-subject" activeclassname="active">Add Subject</NavLink>
+            </li>
           </ul>
         </nav>
       </aside>

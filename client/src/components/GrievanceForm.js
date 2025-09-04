@@ -9,6 +9,7 @@ const GrievanceForm = () => {
     const [natureOfComplaint, setNatureOfComplaint] = useState('');
     const [assignmentNo, setAssignmentNo] = useState('');
     const [complaintDate] = useState(new Date().toISOString().split('T')[0]); // today's date in YYYY-MM-DD
+    const [hasExistingGrievance, setHasExistingGrievance] = useState(false);
 
 
     useEffect(() => {
@@ -17,6 +18,7 @@ const GrievanceForm = () => {
                 const res = await fetch(`http://localhost:5000/api/subject/${subjectId}`);
                 const data = await res.json();
                 setSubject(data);
+                setHasExistingGrievance(data.has_grievance || false);
             } catch (err) {
                 console.error('Error fetching subject:', err);
             }
@@ -27,6 +29,13 @@ const GrievanceForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Safety check in case someone directly accesses the URL
+        if (hasExistingGrievance) {
+            alert('A grievance has already been raised for this subject.');
+            navigate('/dashboard');
+            return;
+        }
 
         const response = await fetch('http://localhost:5000/api/grievance', {
             method: 'POST',
@@ -40,10 +49,12 @@ const GrievanceForm = () => {
         });
 
         const data = await response.json();
-        alert(data.message || 'Something went wrong');
 
         if (response.ok) {
-            navigate('/dashboard'); // ✅ redirect after success
+            alert('Grievance raised successfully!');
+            navigate('/dashboard');
+        } else {
+            alert(data.error || 'Failed to raise grievance');
         }
     };
 
@@ -80,12 +91,17 @@ const GrievanceForm = () => {
 
                 <div className="mb-3">
                     <label>Assignment Number:</label>
-                    <input
+                    <select
                         className="form-control"
                         value={assignmentNo}
                         onChange={(e) => setAssignmentNo(e.target.value)}
                         required
-                    />
+                    >
+                        <option value="">-- Select Assignment --</option>
+                        <option value="CCE1">CCE1</option>
+                        <option value="CCE2">CCE2</option>
+                        <option value="ESE">ESE</option>
+                    </select>
                 </div>
 
                 <div className="mb-3">
@@ -111,7 +127,9 @@ const GrievanceForm = () => {
                     <input className="form-control" value={complaintDate} disabled />
                 </div>
 
-                <button type="submit" className="btn btn-danger">Submit Grievance</button>
+                <button type="submit" className="btn btn-danger">
+                    Submit Grievance
+                </button>
             </form>
         </div>
     );

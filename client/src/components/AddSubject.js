@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const AddSubject = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         subject_name: '',
         subject_code: '',
-        assignment_no: 'ASG001',
+        assignment_no: 'CCE1',
         student_roll_no: '',
         faculty_email: '',
         marks_obtained: '85',
@@ -13,6 +15,42 @@ const AddSubject = () => {
     });
 
     const [message, setMessage] = useState('');
+    const [students, setStudents] = useState([]);
+    const [faculty, setFaculty] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+
+
+    // Check authentication and load data
+    useEffect(() => {
+        const checkAuth = async () => {
+            const userRole = localStorage.getItem('role');
+
+            if (!userRole || userRole !== 'admin') {
+                setMessage('❌ Access denied. Only administrators can add subjects.');
+                setTimeout(() => navigate('/login'), 2000);
+                return;
+            }
+
+            await loadUsers();
+        };
+
+        checkAuth();
+    }, [navigate]);
+
+    const loadUsers = async () => {
+        try {
+            const response = await axios.get('/api/debug/users');
+            const users = response.data;
+
+            setStudents(users.filter(u => u.role === 'user'));
+            setFaculty(users.filter(u => u.role !== 'user'));
+            setLoading(false);
+        } catch (error) {
+            setMessage('❌ Error loading users');
+            setLoading(false);
+        }
+    };
 
     const handleChange = (e) => {
         setFormData({
@@ -23,14 +61,21 @@ const AddSubject = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.student_roll_no) {
+            setMessage('❌ Please select a student');
+            return;
+        }
+
         try {
             const response = await axios.post('/api/subjects', formData);
             setMessage('✅ ' + response.data.message);
+
             // Reset form
             setFormData({
                 subject_name: '',
                 subject_code: '',
-                assignment_no: 'ASG001',
+                assignment_no: 'CCE1',
                 student_roll_no: '',
                 faculty_email: '',
                 marks_obtained: '85',
@@ -41,37 +86,17 @@ const AddSubject = () => {
         }
     };
 
-    const checkUsers = async () => {
-        try {
-            const response = await axios.get('/api/debug/users');
-            const users = response.data;
-            const students = users.filter(u => u.role === 'user');
-            const faculty = users.filter(u => u.role !== 'user');
-
-            setMessage(`👥 Students: ${students.map(s => `${s.name}(${s.roll_no})`).join(', ')} | Faculty: ${faculty.map(f => `${f.name}(${f.email})`).join(', ')}`);
-        } catch (error) {
-            setMessage('❌ ' + (error.response?.data?.error || 'Error fetching users'));
-        }
-    };
+    if (loading) {
+        return (
+            <div style={{ textAlign: 'center', padding: '50px' }}>
+                <h3>Loading...</h3>
+            </div>
+        );
+    }
 
     return (
         <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px' }}>
-            <h2>Add Subject (Manual Entry)</h2>
-
-            <button
-                onClick={checkUsers}
-                style={{
-                    backgroundColor: '#17a2b8',
-                    color: 'white',
-                    padding: '10px 20px',
-                    border: 'none',
-                    borderRadius: '5px',
-                    marginBottom: '20px',
-                    cursor: 'pointer'
-                }}
-            >
-                Check Available Users
-            </button>
+            <h2>Add Subject</h2>
 
             {message && (
                 <div style={{
@@ -113,28 +138,53 @@ const AddSubject = () => {
                 </div>
 
                 <div style={{ marginBottom: '15px' }}>
-                    <label>Student Roll Number *</label>
-                    <input
-                        type="text"
+                    <label>Assignment Number</label>
+                    <select
+                        name="assignment_no"
+                        value={formData.assignment_no}
+                        onChange={handleChange}
+                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                    >
+                        <option value="CCE1">CCE1</option>
+                        <option value="CCE2">CCE2</option>
+                        <option value="ESE">ESE</option>
+
+                    </select>
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                    <label>Student *</label>
+                    <select
                         name="student_roll_no"
                         value={formData.student_roll_no}
                         onChange={handleChange}
                         required
-                        placeholder="e.g., 2021001"
                         style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                    />
+                    >
+                        <option value="">-- Select Student --</option>
+                        {students.map(student => (
+                            <option key={student.id} value={student.roll_no}>
+                                {student.name} ({student.roll_no})
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div style={{ marginBottom: '15px' }}>
-                    <label>Faculty Email (optional)</label>
-                    <input
-                        type="email"
+                    <label>Faculty</label>
+                    <select
                         name="faculty_email"
                         value={formData.faculty_email}
                         onChange={handleChange}
-                        placeholder="Leave empty to use any admin/faculty"
                         style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                    />
+                    >
+                        <option value="">-- Auto-assign Faculty --</option>
+                        {faculty.map(fac => (
+                            <option key={fac.id} value={fac.email}>
+                                {fac.name} ({fac.role})
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div style={{ marginBottom: '15px' }}>
@@ -146,6 +196,7 @@ const AddSubject = () => {
                         onChange={handleChange}
                         min="0"
                         max="100"
+                        placeholder="Enter marks (0-100)"
                         style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                     />
                 </div>

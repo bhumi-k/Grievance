@@ -12,7 +12,6 @@ const Dashboard = ({ theme }) => {
                 const rollNo = localStorage.getItem('rollNo');
                 const response = await fetch(`http://localhost:5000/api/subjects?rollNo=${rollNo}`);
                 const data = await response.json();
-                console.log("Fetched subjects:", data);
                 setSubjects(data);
                 setCurrentTime(Date.now());
             } catch (error) {
@@ -54,7 +53,20 @@ const Dashboard = ({ theme }) => {
                     <p>No subjects found or results not declared yet.</p>
                 ) : (
                     subjects.map((subject) => {
-                        const disabled = !isWithin48Hours(subject.result_date);
+                        const timeExpired = !isWithin48Hours(subject.result_date);
+                        const hasGrievance = subject.has_grievance;
+                        const disabled = timeExpired || hasGrievance;
+
+                        let buttonText = 'Raise Grievance';
+                        let buttonTitle = 'Raise grievance';
+
+                        if (hasGrievance) {
+                            buttonText = 'Grievance Raised';
+                            buttonTitle = 'Grievance already raised for this subject';
+                        } else if (timeExpired) {
+                            buttonText = 'Raise Grievance';
+                            buttonTitle = 'Grievance window closed (48hr passed)';
+                        }
 
                         return (
                             <div key={subject.id} style={{
@@ -71,12 +83,17 @@ const Dashboard = ({ theme }) => {
                                 <p><strong>Marks:</strong> {subject.marks_obtained}</p>
                                 <button
                                     disabled={disabled}
-                                    onClick={() => navigate(`/raise-grievance/${subject.id}`)}
+                                    onClick={() => !disabled && navigate(`/raise-grievance/${subject.id}`)}
                                     className={`btn ${disabled ? 'btn-secondary' : 'btn-primary'}`}
-                                    style={{ marginTop: '10px' }}
-                                    title={disabled ? "Grievance window closed (48hr passed)" : "Raise grievance"}
+                                    style={{
+                                        marginTop: '10px',
+                                        backgroundColor: disabled ? '#6c757d' : '',
+                                        borderColor: disabled ? '#6c757d' : '',
+                                        cursor: disabled ? 'not-allowed' : 'pointer'
+                                    }}
+                                    title={buttonTitle}
                                 >
-                                    Raise Grievance
+                                    {buttonText}
                                 </button>
                             </div>
                         );
