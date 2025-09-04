@@ -66,8 +66,8 @@ const Dashboard = ({ theme }) => {
                                 boxShadow: '2px 4px 8px rgba(0,0,0,0.1)'
                             }}>
                                 <h3 style={{ color: '#007bff', marginBottom: '8px' }}>{subject.subject_name}</h3>
-                                <p><strong>Name:</strong> {subject.student_name}</p>
-                                <p><strong>Roll No:</strong> {subject.roll_no}</p>
+                                <p><strong>Faculty:</strong> {subject.faculty_name}</p>
+                                <p><strong>Subject Code:</strong> {subject.subject_code || 'N/A'}</p>
                                 <p><strong>Marks:</strong> {subject.marks_obtained}</p>
                                 <button
                                     disabled={disabled}

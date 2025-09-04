@@ -17,6 +17,7 @@ import AdminRegister from "./components/AdminRegister";
 import AdminLayout from "./components/AdminLayout";
 import FacultyDashboard from './components/faculty/Dashboard';
 import ResolveGrievance from './components/faculty/ResolveGrievance';
+import AddSubject from './components/AddSubject';
 
 function RequireAdmin({ children }) {
   const role = localStorage.getItem("role");
@@ -110,6 +111,7 @@ function App() {
             <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
             <Route path="/faculty-dashboard" element={<FacultyDashboard theme={theme} />} />
             <Route path="/resolve/:id" element={<ResolveGrievance theme={theme} />} />
+            <Route path="/add-subject" element={<AddSubject />} />
 
           </Routes>
         </main>

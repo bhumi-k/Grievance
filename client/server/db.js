@@ -21,42 +21,45 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255),
   roll_no VARCHAR(20),
   class VARCHAR(50),
-role ENUM('admin', 'user', 'faculty', 'hod', 'ceo', 'director') DEFAULT 'user',
+  role ENUM('admin', 'user', 'faculty', 'hod', 'ceo', 'director') DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 `;
 
   // SUBJECTS table
   const createSubjectsTable = `
-  CREATE TABLE IF NOT EXISTS subjects (
-     id INT AUTO_INCREMENT PRIMARY KEY,
-    subject_name VARCHAR(100),
-    student_name VARCHAR(100),
-    roll_no VARCHAR(20),
-    marks_obtained INT,
-    result_date DATETIME,
-    faculty_name VARCHAR(100),
-    assignment_no VARCHAR(50),
-    subject_code VARCHAR(20) DEFAULT NULL
-  );
+CREATE TABLE IF NOT EXISTS subjects (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  subject_name VARCHAR(100),
+  student_id INT,
+  faculty_id INT,
+  marks_obtained INT,
+  result_date DATETIME,
+  assignment_no VARCHAR(50),
+  subject_code VARCHAR(20) DEFAULT NULL,
+  CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES users(id) 
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_faculty FOREIGN KEY (faculty_id) REFERENCES users(id) 
+    ON DELETE SET NULL ON UPDATE CASCADE
+);
+
   `;
 
 
   // GRIEVANCES table
   const createGrievancesTable = `
-  CREATE TABLE IF NOT EXISTS grievances (
+CREATE TABLE IF NOT EXISTS grievances (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  subject_id INT,
+  student_id INT,
+  complaint_date DATE,
+  nature_of_complaint TEXT,
+  FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    subject_id INT,
-    student_name VARCHAR(100),
-    roll_no VARCHAR(20),
-    grievance_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
-    complaint_date date DEFAULT NULL,
-    nature_of_complaint varchar(255) DEFAULT NULL,
-    KEY subject_id (subject_id)
-  );
   `;
 
   db.query(createUsersTable, (err) => {

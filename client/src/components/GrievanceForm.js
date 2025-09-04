@@ -54,13 +54,13 @@ const GrievanceForm = () => {
             <h2>Raise Grievance</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                    <label>Name:</label>
+                    <label>Student Name:</label>
                     <input className="form-control" value={subject.student_name} disabled />
                 </div>
 
                 <div className="mb-3">
                     <label>Roll No:</label>
-                    <input className="form-control" value={subject.roll_no} disabled />
+                    <input className="form-control" value={subject.student_roll} disabled />
                 </div>
 
                 <div className="mb-3">
