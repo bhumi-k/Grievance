@@ -5,20 +5,44 @@ import { useNavigate } from 'react-router-dom';
 
 const FacultyDashboard = ({ theme }) => {
     const [grievances, setGrievances] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [accessDenied, setAccessDenied] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchGrievances = async () => {
+        const checkAuthAndFetchData = async () => {
+            const userRole = localStorage.getItem('role');
+
+            // Check if user is logged in
+            if (!userRole) {
+                setAccessDenied(true);
+                setLoading(false);
+                setTimeout(() => navigate('/login'), 2000);
+                return;
+            }
+
+            // Restrict access - only non-student users can access
+            if (userRole === 'user') {
+                setAccessDenied(true);
+                setLoading(false);
+                setTimeout(() => navigate('/dashboard'), 2000);
+                return;
+            }
+
+            // User has valid role, fetch grievances
             try {
                 const res = await fetch('http://localhost:5000/api/grievances');
                 const data = await res.json();
                 setGrievances(data);
             } catch (err) {
                 console.error('Error fetching grievances:', err);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchGrievances();
-    }, []);
+
+        checkAuthAndFetchData();
+    }, [navigate]);
 
     const containerStyle = {
         display: 'flex',
@@ -47,6 +71,58 @@ const FacultyDashboard = ({ theme }) => {
         background: theme === 'dark' ? '#2b2b2b' : '#f9f9f9',
         boxShadow: '2px 4px 8px rgba(0,0,0,0.1)',
     };
+
+    // Show loading state
+    if (loading) {
+        return (
+            <div style={{
+                ...containerStyle,
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column'
+            }}>
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                <h5 style={{ marginTop: '20px' }}>Checking access permissions...</h5>
+            </div>
+        );
+    }
+
+    // Show access denied message
+    if (accessDenied) {
+        const userRole = localStorage.getItem('role');
+        return (
+            <div style={{
+                ...containerStyle,
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column'
+            }}>
+                <div style={{
+                    textAlign: 'center',
+                    padding: '40px',
+                    backgroundColor: theme === 'dark' ? '#2b2b2b' : '#f8f9fa',
+                    borderRadius: '12px',
+                    border: '2px solid #dc3545'
+                }}>
+                    <h2 style={{ color: '#dc3545', marginBottom: '20px' }}>❌ Access Denied</h2>
+                    <p style={{ fontSize: '18px', marginBottom: '20px' }}>
+                        {!userRole
+                            ? 'You must be logged in to access the faculty dashboard.'
+                            : 'Students cannot access the faculty dashboard. This area is restricted to faculty, admin, and other staff members.'
+                        }
+                    </p>
+                    <p style={{ color: '#6c757d' }}>
+                        {!userRole
+                            ? 'Redirecting to login page...'
+                            : 'Redirecting to student dashboard...'
+                        }
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={containerStyle}>

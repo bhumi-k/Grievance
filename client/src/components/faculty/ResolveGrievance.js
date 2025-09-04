@@ -8,9 +8,30 @@ const ResolveGrievance = ({ theme }) => {
     const [data, setData] = useState(null);
     const [oldMarks, setOldMarks] = useState('');
     const [newMarks, setNewMarks] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [accessDenied, setAccessDenied] = useState(false);
 
     useEffect(() => {
-        const fetchDetails = async () => {
+        const checkAuthAndFetchData = async () => {
+            const userRole = localStorage.getItem('role');
+
+            // Check if user is logged in
+            if (!userRole) {
+                setAccessDenied(true);
+                setLoading(false);
+                setTimeout(() => navigate('/login'), 2000);
+                return;
+            }
+
+            // Restrict access - only non-student users can access
+            if (userRole === 'user') {
+                setAccessDenied(true);
+                setLoading(false);
+                setTimeout(() => navigate('/dashboard'), 2000);
+                return;
+            }
+
+            // User has valid role, fetch grievance details
             try {
                 const res = await fetch(`http://localhost:5000/api/grievance/${id}`);
                 const data = await res.json();
@@ -18,10 +39,13 @@ const ResolveGrievance = ({ theme }) => {
                 setOldMarks(data?.marks_obtained || '');
             } catch (err) {
                 console.error('Error:', err);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchDetails();
-    }, [id]);
+
+        checkAuthAndFetchData();
+    }, [id, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,7 +65,66 @@ const ResolveGrievance = ({ theme }) => {
         }
     };
 
-    if (!data) return <p style={{ padding: '30px' }}>Loading...</p>;
+    // Show loading state
+    if (loading) {
+        return (
+            <div style={{
+                padding: '30px',
+                backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+                color: theme === 'dark' ? '#f0f0f0' : '#000',
+                minHeight: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column'
+            }}>
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                <h5 style={{ marginTop: '20px' }}>Loading grievance details...</h5>
+            </div>
+        );
+    }
+
+    // Show access denied message
+    if (accessDenied) {
+        const userRole = localStorage.getItem('role');
+        return (
+            <div style={{
+                padding: '30px',
+                backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+                color: theme === 'dark' ? '#f0f0f0' : '#000',
+                minHeight: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <div style={{
+                    textAlign: 'center',
+                    padding: '40px',
+                    backgroundColor: theme === 'dark' ? '#2b2b2b' : '#f8f9fa',
+                    borderRadius: '12px',
+                    border: '2px solid #dc3545'
+                }}>
+                    <h2 style={{ color: '#dc3545', marginBottom: '20px' }}>❌ Access Denied</h2>
+                    <p style={{ fontSize: '18px', marginBottom: '20px' }}>
+                        {!userRole
+                            ? 'You must be logged in to resolve grievances.'
+                            : 'Students cannot access grievance resolution. This area is restricted to faculty, admin, and other staff members.'
+                        }
+                    </p>
+                    <p style={{ color: '#6c757d' }}>
+                        {!userRole
+                            ? 'Redirecting to login page...'
+                            : 'Redirecting to student dashboard...'
+                        }
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!data) return <p style={{ padding: '30px' }}>Loading grievance data...</p>;
 
     return (
         <div style={{
