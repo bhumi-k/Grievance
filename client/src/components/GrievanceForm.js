@@ -88,6 +88,7 @@ const GrievanceForm = () => {
                     <label>Faculty Name:</label>
                     <input className="form-control" value={subject.faculty_name} disabled />
                 </div>
+               
 
                 <div className="mb-3">
                     <label>Assignment Number:</label>
