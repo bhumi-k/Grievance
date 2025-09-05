@@ -92,26 +92,11 @@ const GrievanceForm = () => {
                     <input className="form-control" name="subject_code" value={subject.subject_code || 'N/A'} readOnly style={{ backgroundColor: "#e9ecef" }} />
                 </div>
 
-                {/*<div className="mb-3">
+                <div className="mb-3">
                     <label>Faculty Name:</label>
                     <input className="form-control" name="faculty_name" value={subject.faculty_name} readOnly style={{ backgroundColor: "#e9ecef" }} />
-                </div>*/}
-                <div className="mb-3">
-    <label>Faculty Name:</label>
-    <select
-        className="form-control"
-        name="faculty_name"
-        value={subject.faculty_name}
-        onChange={(e) => setSubject({ ...subject, faculty_name: e.target.value })}
-        required
-    >
-        <option value="">-- Select Faculty --</option>
-        <option value="bhumika.k@svims.in">Bhumika </option>
-        <option value="deepali.G@svims.in">Deepali G</option>
-        <option value="deepak@svims.in">Deepak Singh</option>
-        <option value="neeta.raskar@svims.in">Neeta Raskar </option>
-    </select>
-</div>
+                </div>
+               
 
                 <div className="mb-3">
                     <label>Assignment Number:</label>
