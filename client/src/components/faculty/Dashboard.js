@@ -8,6 +8,7 @@ const FacultyDashboard = ({ theme }) => {
     const [loading, setLoading] = useState(true);
     const [accessDenied, setAccessDenied] = useState(false);
     const [processingClose, setProcessingClose] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -45,8 +46,22 @@ const FacultyDashboard = ({ theme }) => {
         checkAuthAndFetchData();
     }, [navigate]);
 
+    const refreshGrievances = async () => {
+        setRefreshing(true);
+        try {
+            const res = await fetch('http://localhost:5000/api/grievances');
+            const data = await res.json();
+            setGrievances(data);
+        } catch (err) {
+            console.error('Error refreshing grievances:', err);
+            alert('Failed to refresh grievances. Please try again.');
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
     const handleCloseGrievance = async (grievanceId) => {
-        if (!window.confirm('Are you sure you want to close this grievance? This action cannot be undone.')) {
+        if (!window.confirm('Are you sure you want to close this grievance without making any changes? This action cannot be undone.')) {
             return;
         }
 
@@ -64,7 +79,7 @@ const FacultyDashboard = ({ theme }) => {
 
             if (response.ok) {
                 alert('Grievance closed successfully! Email notification sent to student.');
-                // Remove the closed grievance from the list
+                // Remove the closed grievance from the list immediately (status changed to 'closed')
                 setGrievances(prev => prev.filter(g => g.id !== grievanceId));
             } else {
                 alert(`Error: ${result.error || 'Failed to close grievance'}`);
@@ -163,14 +178,38 @@ const FacultyDashboard = ({ theme }) => {
                 <h3 style={{ marginBottom: '20px' }}>Faculty Panel</h3>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                     <li> <button onClick={() => navigate('/faculty-dashboard')} style={{ border: 0, padding: 3, margin: 5, width: '100%' }}>📋 Inbox </button></li>
+                    <li> <button onClick={refreshGrievances} disabled={refreshing} style={{ border: 0, padding: 3, margin: 5, width: '100%' }}>
+                        {refreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+                    </button></li>
                     <li> <button onClick={() => navigate('/')} style={{ border: 0, padding: 3, margin: 5, width: '100%' }}>🏠 Home</button></li>
                 </ul>
             </aside>
 
             <main style={contentStyle}>
-                <h2>Grievance inbox</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h2>Grievance Inbox</h2>
+                    <div style={{
+                        backgroundColor: grievances.length > 0 ? '#dc3545' : '#28a745',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                    }}>
+                        {grievances.length} Pending Grievance{grievances.length !== 1 ? 's' : ''}
+                    </div>
+                </div>
                 {grievances.length === 0 ? (
-                    <p>No grievances found.</p>
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '40px',
+                        backgroundColor: theme === 'dark' ? '#2b2b2b' : '#f8f9fa',
+                        borderRadius: '12px',
+                        border: '2px solid #28a745'
+                    }}>
+                        <h3 style={{ color: '#28a745', marginBottom: '10px' }}>🎉 All Clear!</h3>
+                        <p>No pending grievances found. All grievances have been resolved or closed.</p>
+                    </div>
                 ) : (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
                         {grievances.map((g) => (

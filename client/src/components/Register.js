@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./Form.css";
 import axios from "axios";
 
-const Register = () => {
+const Register = ({ theme }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,7 +35,7 @@ const Register = () => {
   };
 
   return (
-    <div className="form-container">
+    <div className={`form-container theme-${theme}`}>
       <form className="form" onSubmit={handleSubmit}>
         <h2>Register</h2>
         <select

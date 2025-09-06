@@ -155,7 +155,7 @@ app.get('/api/subjects', (req, res) => {
       EXISTS (
         SELECT 1 
         FROM grievances g 
-        WHERE g.subject_id = s.id
+        WHERE g.subject_id = s.id AND g.status = 'pending'
       ) AS has_grievance
     FROM subjects s
     JOIN users stu ON s.student_id = stu.id
@@ -200,7 +200,7 @@ app.get('/api/subject/:id', (req, res) => {
       EXISTS (
         SELECT 1 
         FROM grievances g 
-        WHERE g.subject_id = s.id
+        WHERE g.subject_id = s.id AND g.status = 'pending'
       ) AS has_grievance
     FROM subjects s
     JOIN users stu ON s.student_id = stu.id
@@ -296,7 +296,7 @@ app.post('/api/grievance', (req, res) => {
   });
 });
 
-// Fetch all grievances for faculty (FIXED - uses proper JOINs)
+// Fetch all grievances for faculty (FIXED - uses proper JOINs and filters by status)
 app.get('/api/grievances', (req, res) => {
   const query = `
     SELECT 
@@ -304,6 +304,7 @@ app.get('/api/grievances', (req, res) => {
       g.subject_id, 
       g.complaint_date, 
       g.nature_of_complaint,
+      g.status,
       s.subject_name,
       s.subject_code,
       s.assignment_no,
@@ -317,6 +318,7 @@ app.get('/api/grievances', (req, res) => {
     JOIN subjects s ON g.subject_id = s.id
     JOIN users stu ON g.student_id = stu.id
     JOIN users fac ON s.faculty_id = fac.id
+    WHERE g.status = 'pending'
     ORDER BY g.complaint_date DESC
   `;
 
@@ -393,20 +395,26 @@ app.put('/api/grievance/:id/resolve', (req, res) => {
     const subjectId = grievanceData.subject_id;
     const oldMarks = grievanceData.old_marks;
 
-    const updateQuery = `UPDATE subjects SET marks_obtained = ? WHERE id = ?`;
+    // Update both marks and grievance status
+    const updateMarksQuery = `UPDATE subjects SET marks_obtained = ? WHERE id = ?`;
+    const updateStatusQuery = `UPDATE grievances SET status = 'resolved' WHERE id = ?`;
 
-    db.query(updateQuery, [newMarks, subjectId], async (err2) => {
+    db.query(updateMarksQuery, [newMarks, subjectId], (err2) => {
       if (err2) return res.status(500).json({ error: 'Failed to update marks' });
 
-      // Send email notification to student
-      try {
-        await emailService.sendGrievanceResolved(grievanceData, oldMarks, newMarks);
-        console.log('✅ Grievance resolution email sent to student');
-      } catch (emailError) {
-        console.error('❌ Failed to send grievance resolution email:', emailError);
-      }
+      db.query(updateStatusQuery, [grievanceId], async (err3) => {
+        if (err3) return res.status(500).json({ error: 'Failed to update grievance status' });
 
-      res.json({ message: 'Marks updated successfully' });
+        // Send email notification to student
+        try {
+          await emailService.sendGrievanceResolved(grievanceData, oldMarks, newMarks);
+          console.log('✅ Grievance resolution email sent to student');
+        } catch (emailError) {
+          console.error('❌ Failed to send grievance resolution email:', emailError);
+        }
+
+        res.json({ message: 'Marks updated successfully and grievance resolved' });
+      });
     });
   });
 });
@@ -646,6 +654,7 @@ app.get('/api/grievances/faculty/:facultyId', (req, res) => {
       g.subject_id, 
       g.complaint_date, 
       g.nature_of_complaint,
+      g.status,
       s.subject_name,
       s.subject_code,
       s.assignment_no,
@@ -656,7 +665,7 @@ app.get('/api/grievances/faculty/:facultyId', (req, res) => {
     FROM grievances g
     JOIN subjects s ON g.subject_id = s.id
     JOIN users stu ON g.student_id = stu.id
-    WHERE s.faculty_id = ?
+    WHERE s.faculty_id = ? AND g.status = 'pending'
     ORDER BY g.complaint_date DESC
   `;
 
@@ -694,7 +703,7 @@ app.put('/api/grievance/:id/close', (req, res) => {
     WHERE g.id = ?
   `;
 
-  db.query(getGrievanceQuery, [grievanceId], async (err, rows) => {
+  db.query(getGrievanceQuery, [grievanceId], (err, rows) => {
     if (err) {
       console.error('❌ Database error in close grievance:', err);
       return res.status(500).json({ error: 'Database error' });
@@ -713,16 +722,26 @@ app.put('/api/grievance/:id/close', (req, res) => {
       subject_name: grievanceData.subject_name
     });
 
-    // Send email notification to student
-    try {
-      const emailResult = await emailService.sendGrievanceClosed(grievanceData);
-      console.log('✅ Grievance closure email sent to student:', emailResult);
-    } catch (emailError) {
-      console.error('❌ Failed to send grievance closure email:', emailError);
-      // Don't fail the request if email fails
-    }
+    // Update grievance status to closed
+    const updateStatusQuery = `UPDATE grievances SET status = 'closed' WHERE id = ?`;
 
-    res.json({ message: 'Grievance closed successfully' });
+    db.query(updateStatusQuery, [grievanceId], async (err2) => {
+      if (err2) {
+        console.error('❌ Error updating grievance status:', err2);
+        return res.status(500).json({ error: 'Failed to update grievance status' });
+      }
+
+      // Send email notification to student
+      try {
+        const emailResult = await emailService.sendGrievanceClosed(grievanceData);
+        console.log('✅ Grievance closure email sent to student:', emailResult);
+      } catch (emailError) {
+        console.error('❌ Failed to send grievance closure email:', emailError);
+        // Don't fail the request if email fails
+      }
+
+      res.json({ message: 'Grievance closed successfully' });
+    });
   });
 });
 

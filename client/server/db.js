@@ -56,11 +56,27 @@ CREATE TABLE IF NOT EXISTS grievances (
   student_id INT,
   complaint_date DATE,
   nature_of_complaint TEXT,
+  status ENUM('pending', 'resolved', 'closed') DEFAULT 'pending',
   FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
   FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
   `;
+
+  // Create emails table
+  const createEmailsTable = `
+CREATE TABLE IF NOT EXISTS emails (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  to_email VARCHAR(255) NOT NULL,
+  subject VARCHAR(500) NOT NULL,
+  template VARCHAR(100) NOT NULL,
+  status ENUM('sent', 'failed') DEFAULT 'sent',
+  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_to_email (to_email),
+  INDEX idx_sent_at (sent_at),
+  INDEX idx_status (status)
+);
+`;
 
   db.query(createUsersTable, (err) => {
     if (err) console.error('❌ Error creating users table:', err);
@@ -75,6 +91,25 @@ CREATE TABLE IF NOT EXISTS grievances (
   db.query(createGrievancesTable, (err) => {
     if (err) console.error('❌ Error creating grievances table:', err);
     else console.log('✅ Grievances table is ready');
+  });
+
+  // Add status column to existing grievances table if it doesn't exist
+  const addStatusColumn = `
+    ALTER TABLE grievances 
+    ADD COLUMN status ENUM('pending', 'resolved', 'closed') DEFAULT 'pending'
+  `;
+
+  db.query(addStatusColumn, (err) => {
+    if (err && !err.message.includes('Duplicate column name')) {
+      console.error('❌ Error adding status column (column may already exist):', err.message);
+    } else {
+      console.log('✅ Status column added to grievances table');
+    }
+  });
+
+  db.query(createEmailsTable, (err) => {
+    if (err) console.error('❌ Error creating emails table:', err);
+    else console.log('✅ Emails table is ready');
   });
 });
 

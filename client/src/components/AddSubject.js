@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const AddSubject = () => {
+const AddSubject = ({ theme }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         subject_name: '',
@@ -88,14 +88,14 @@ const AddSubject = () => {
 
     if (loading) {
         return (
-            <div style={{ textAlign: 'center', padding: '50px' }}>
+            <div className={`theme-${theme}`} style={{ textAlign: 'center', padding: '50px' }}>
                 <h3>Loading...</h3>
             </div>
         );
     }
 
     return (
-        <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px' }}>
+        <div className={`theme-${theme}`} style={{ maxWidth: '600px', margin: '20px auto', padding: '20px' }}>
             <h2>Add Subject</h2>
 
             {message && (

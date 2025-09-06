@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const GrievanceForm = () => {
+const GrievanceForm = ({ theme }) => {
     const { id: subjectId } = useParams();
     const navigate = useNavigate();
 
@@ -80,7 +80,7 @@ const GrievanceForm = () => {
     // Show loading state
     if (loading) {
         return (
-            <div style={{
+            <div className={`theme-${theme}`} style={{
                 maxWidth: '600px',
                 margin: '30px auto',
                 textAlign: 'center',
@@ -96,7 +96,7 @@ const GrievanceForm = () => {
 
     if (!subject) {
         return (
-            <div style={{ maxWidth: '600px', margin: '30px auto', textAlign: 'center' }}>
+            <div className={`theme-${theme}`} style={{ maxWidth: '600px', margin: '30px auto', textAlign: 'center', padding: '20px' }}>
                 <h3>Subject not found</h3>
                 <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
                     Back to Dashboard
@@ -106,7 +106,7 @@ const GrievanceForm = () => {
     }
 
     return (
-        <div style={{ maxWidth: '600px', margin: '30px auto' }}>
+        <div className={`theme-${theme}`} style={{ maxWidth: '600px', margin: '30px auto', padding: '20px' }}>
             <h2>Raise Grievance</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
