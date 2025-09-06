@@ -9,6 +9,7 @@ const ResolveGrievance = ({ theme }) => {
     const [oldMarks, setOldMarks] = useState('');
     const [newMarks, setNewMarks] = useState('');
     const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
     const [accessDenied, setAccessDenied] = useState(false);
 
     useEffect(() => {
@@ -49,6 +50,14 @@ const ResolveGrievance = ({ theme }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!newMarks || newMarks === oldMarks) {
+            alert('Please enter a different mark value.');
+            return;
+        }
+
+        setProcessing(true);
+
         try {
             const res = await fetch(`http://localhost:5000/api/grievance/${id}/resolve`, {
                 method: 'PUT',
@@ -57,11 +66,18 @@ const ResolveGrievance = ({ theme }) => {
             });
 
             const result = await res.json();
-            alert(result.message || 'Updated!');
-            if (res.ok) navigate('/faculty-dashboard');
+
+            if (res.ok) {
+                alert('Grievance resolved successfully! Email notification sent to student.');
+                navigate('/faculty-dashboard');
+            } else {
+                alert(`Error: ${result.error || 'Failed to resolve grievance'}`);
+            }
         } catch (err) {
             console.error('Update error:', err);
-            alert('Failed to update marks.');
+            alert('Network error. Please try again.');
+        } finally {
+            setProcessing(false);
         }
     };
 
@@ -167,11 +183,29 @@ const ResolveGrievance = ({ theme }) => {
                             type="number"
                             value={newMarks}
                             onChange={(e) => setNewMarks(e.target.value)}
+                            disabled={processing}
                             required
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-success">Update</button>
+                    <button
+                        type="submit"
+                        className="btn btn-success"
+                        disabled={processing}
+                        style={{
+                            opacity: processing ? 0.7 : 1,
+                            cursor: processing ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        {processing ? (
+                            <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Resolving...
+                            </>
+                        ) : (
+                            'Update'
+                        )}
+                    </button>
                 </form>
             </div>
         </div>
