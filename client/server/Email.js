@@ -205,6 +205,12 @@ class EmailService {
 
     // Send grievance closed notification to student
     async sendGrievanceClosed(grievanceData) {
+        console.log('📧 Starting sendGrievanceClosed with data:', {
+            student_email: grievanceData.student_email,
+            student_name: grievanceData.student_name,
+            id: grievanceData.id
+        });
+
         const variables = {
             student_name: grievanceData.student_name,
             faculty_name: grievanceData.faculty_name,
@@ -218,11 +224,20 @@ class EmailService {
             grievance: grievanceData.nature_of_complaint
         };
 
-        return await this.sendEmail(
-            grievanceData.student_email,
-            'grievance_closed',
-            variables
-        );
+        console.log('🔍 Closure email variables:', variables);
+
+        try {
+            const result = await this.sendEmail(
+                grievanceData.student_email,
+                'grievance_closed',
+                variables
+            );
+            console.log('✅ sendGrievanceClosed completed:', result);
+            return result;
+        } catch (error) {
+            console.error('❌ sendGrievanceClosed failed:', error);
+            throw error;
+        }
     }
 }
 

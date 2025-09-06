@@ -7,6 +7,7 @@ const FacultyDashboard = ({ theme }) => {
     const [grievances, setGrievances] = useState([]);
     const [loading, setLoading] = useState(true);
     const [accessDenied, setAccessDenied] = useState(false);
+    const [processingClose, setProcessingClose] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -43,6 +44,38 @@ const FacultyDashboard = ({ theme }) => {
 
         checkAuthAndFetchData();
     }, [navigate]);
+
+    const handleCloseGrievance = async (grievanceId) => {
+        if (!window.confirm('Are you sure you want to close this grievance? This action cannot be undone.')) {
+            return;
+        }
+
+        setProcessingClose(grievanceId);
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/grievance/${grievanceId}/close`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Grievance closed successfully! Email notification sent to student.');
+                // Remove the closed grievance from the list
+                setGrievances(prev => prev.filter(g => g.id !== grievanceId));
+            } else {
+                alert(`Error: ${result.error || 'Failed to close grievance'}`);
+            }
+        } catch (error) {
+            console.error('Error closing grievance:', error);
+            alert('Network error. Please try again.');
+        } finally {
+            setProcessingClose(null);
+        }
+    };
 
     const containerStyle = {
         display: 'flex',
@@ -167,16 +200,18 @@ const FacultyDashboard = ({ theme }) => {
 
                                     <button
                                         style={{
-                                            backgroundColor: '#dc3545',
+                                            backgroundColor: processingClose === g.id ? '#6c757d' : '#dc3545',
                                             color: 'white',
                                             padding: '8px 12px',
                                             border: 'none',
                                             borderRadius: '6px',
-                                            cursor: 'pointer'
+                                            cursor: processingClose === g.id ? 'not-allowed' : 'pointer',
+                                            opacity: processingClose === g.id ? 0.7 : 1
                                         }}
-                                        onClick={() => alert(`Close grievance ID: ${g.id}`)}
+                                        onClick={() => handleCloseGrievance(g.id)}
+                                        disabled={processingClose === g.id}
                                     >
-                                        Close
+                                        {processingClose === g.id ? 'Closing...' : 'Close'}
                                     </button>
                                 </div>
                             </div>

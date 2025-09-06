@@ -695,18 +695,31 @@ app.put('/api/grievance/:id/close', (req, res) => {
   `;
 
   db.query(getGrievanceQuery, [grievanceId], async (err, rows) => {
-    if (err || rows.length === 0) {
+    if (err) {
+      console.error('❌ Database error in close grievance:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (rows.length === 0) {
+      console.log('❌ Grievance not found with ID:', grievanceId);
       return res.status(404).json({ error: 'Grievance not found' });
     }
 
     const grievanceData = rows[0];
+    console.log('🔍 Grievance data for closure:', {
+      id: grievanceData.id,
+      student_name: grievanceData.student_name,
+      student_email: grievanceData.student_email,
+      subject_name: grievanceData.subject_name
+    });
 
     // Send email notification to student
     try {
-      await emailService.sendGrievanceClosed(grievanceData);
-      console.log('✅ Grievance closure email sent to student');
+      const emailResult = await emailService.sendGrievanceClosed(grievanceData);
+      console.log('✅ Grievance closure email sent to student:', emailResult);
     } catch (emailError) {
       console.error('❌ Failed to send grievance closure email:', emailError);
+      // Don't fail the request if email fails
     }
 
     res.json({ message: 'Grievance closed successfully' });
