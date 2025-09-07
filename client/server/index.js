@@ -3,6 +3,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 const db = require('./db');
+const emailService = require('./Email');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -154,7 +155,7 @@ app.get('/api/subjects', (req, res) => {
       EXISTS (
         SELECT 1 
         FROM grievances g 
-        WHERE g.subject_id = s.id
+        WHERE g.subject_id = s.id AND g.status = 'pending'
       ) AS has_grievance
     FROM subjects s
     JOIN users stu ON s.student_id = stu.id
@@ -199,7 +200,7 @@ app.get('/api/subject/:id', (req, res) => {
       EXISTS (
         SELECT 1 
         FROM grievances g 
-        WHERE g.subject_id = s.id
+        WHERE g.subject_id = s.id AND g.status = 'pending'
       ) AS has_grievance
     FROM subjects s
     JOIN users stu ON s.student_id = stu.id
@@ -230,11 +231,18 @@ app.post('/api/grievance', (req, res) => {
     return res.status(400).json({ error: 'Subject ID is required' });
   }
 
-  // Get subject with student info via JOIN
+  // Get subject with student and faculty info via JOIN
   const getSubject = `
-    SELECT s.*, stu.id as student_id, stu.roll_no, stu.name as student_name
+    SELECT s.*, 
+           stu.id as student_id, 
+           stu.roll_no, 
+           stu.name as student_name,
+           stu.email as student_email,
+           fac.name as faculty_name,
+           fac.email as faculty_email
     FROM subjects s
     JOIN users stu ON s.student_id = stu.id
+    JOIN users fac ON s.faculty_id = fac.id
     WHERE s.id = ?
   `;
 
@@ -261,18 +269,34 @@ app.post('/api/grievance', (req, res) => {
     db.query(
       insertQuery,
       [subjectId, subject.student_id, complaintDate, natureOfComplaint],
-      (err) => {
+      async (err, result) => {
         if (err) {
           console.error('❌ Error inserting grievance:', err);
           return res.status(500).json({ error: 'Could not raise grievance' });
         }
+
+        // Send email notification to faculty
+        try {
+          const grievanceData = {
+            ...subject,
+            complaint_id: result.insertId,
+            nature_of_complaint: natureOfComplaint
+          };
+
+          await emailService.sendGrievanceSubmitted(grievanceData);
+          console.log('✅ Grievance submission email sent to faculty');
+        } catch (emailError) {
+          console.error('❌ Failed to send grievance submission email:', emailError);
+          // Don't fail the grievance creation if email fails
+        }
+
         res.json({ message: 'Grievance raised successfully!' });
       }
     );
   });
 });
 
-// Fetch all grievances for faculty (FIXED - uses proper JOINs)
+// Fetch all grievances for faculty (FIXED - uses proper JOINs and filters by status)
 app.get('/api/grievances', (req, res) => {
   const query = `
     SELECT 
@@ -280,6 +304,7 @@ app.get('/api/grievances', (req, res) => {
       g.subject_id, 
       g.complaint_date, 
       g.nature_of_complaint,
+      g.status,
       s.subject_name,
       s.subject_code,
       s.assignment_no,
@@ -293,6 +318,7 @@ app.get('/api/grievances', (req, res) => {
     JOIN subjects s ON g.subject_id = s.id
     JOIN users stu ON g.student_id = stu.id
     JOIN users fac ON s.faculty_id = fac.id
+    WHERE g.status = 'pending'
     ORDER BY g.complaint_date DESC
   `;
 
@@ -339,18 +365,56 @@ app.put('/api/grievance/:id/resolve', (req, res) => {
   const grievanceId = req.params.id;
   const { newMarks } = req.body;
 
-  const getSubjectIdQuery = `SELECT subject_id FROM grievances WHERE id = ?`;
-  db.query(getSubjectIdQuery, [grievanceId], (err, rows) => {
+  // Get full grievance data for email
+  const getGrievanceQuery = `
+    SELECT 
+      g.*,
+      s.subject_name,
+      s.subject_code,
+      s.assignment_no,
+      s.marks_obtained as old_marks,
+      s.result_date,
+      stu.name AS student_name,
+      stu.roll_no,
+      stu.email AS student_email,
+      fac.name AS faculty_name,
+      fac.email AS faculty_email
+    FROM grievances g
+    JOIN subjects s ON g.subject_id = s.id
+    JOIN users stu ON g.student_id = stu.id
+    JOIN users fac ON s.faculty_id = fac.id
+    WHERE g.id = ?
+  `;
+
+  db.query(getGrievanceQuery, [grievanceId], (err, rows) => {
     if (err || rows.length === 0) {
       return res.status(404).json({ error: 'Grievance not found' });
     }
 
-    const subjectId = rows[0].subject_id;
-    const updateQuery = `UPDATE subjects SET marks_obtained = ? WHERE id = ?`;
+    const grievanceData = rows[0];
+    const subjectId = grievanceData.subject_id;
+    const oldMarks = grievanceData.old_marks;
 
-    db.query(updateQuery, [newMarks, subjectId], (err2) => {
+    // Update both marks and grievance status
+    const updateMarksQuery = `UPDATE subjects SET marks_obtained = ? WHERE id = ?`;
+    const updateStatusQuery = `UPDATE grievances SET status = 'resolved' WHERE id = ?`;
+
+    db.query(updateMarksQuery, [newMarks, subjectId], (err2) => {
       if (err2) return res.status(500).json({ error: 'Failed to update marks' });
-      res.json({ message: 'Marks updated successfully' });
+
+      db.query(updateStatusQuery, [grievanceId], async (err3) => {
+        if (err3) return res.status(500).json({ error: 'Failed to update grievance status' });
+
+        // Send email notification to student
+        try {
+          await emailService.sendGrievanceResolved(grievanceData, oldMarks, newMarks);
+          console.log('✅ Grievance resolution email sent to student');
+        } catch (emailError) {
+          console.error('❌ Failed to send grievance resolution email:', emailError);
+        }
+
+        res.json({ message: 'Marks updated successfully and grievance resolved' });
+      });
     });
   });
 });
@@ -590,6 +654,7 @@ app.get('/api/grievances/faculty/:facultyId', (req, res) => {
       g.subject_id, 
       g.complaint_date, 
       g.nature_of_complaint,
+      g.status,
       s.subject_name,
       s.subject_code,
       s.assignment_no,
@@ -600,13 +665,136 @@ app.get('/api/grievances/faculty/:facultyId', (req, res) => {
     FROM grievances g
     JOIN subjects s ON g.subject_id = s.id
     JOIN users stu ON g.student_id = stu.id
-    WHERE s.faculty_id = ?
+    WHERE s.faculty_id = ? AND g.status = 'pending'
     ORDER BY g.complaint_date DESC
   `;
 
   db.query(query, [facultyId], (err, results) => {
     if (err) {
       console.error('❌ Error fetching faculty grievances:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    res.json(results);
+  });
+});
+
+// Close grievance without changes
+app.put('/api/grievance/:id/close', (req, res) => {
+  const grievanceId = req.params.id;
+
+  // Get full grievance data for email
+  const getGrievanceQuery = `
+    SELECT 
+      g.*,
+      s.subject_name,
+      s.subject_code,
+      s.assignment_no,
+      s.marks_obtained,
+      s.result_date,
+      stu.name AS student_name,
+      stu.roll_no,
+      stu.email AS student_email,
+      fac.name AS faculty_name,
+      fac.email AS faculty_email
+    FROM grievances g
+    JOIN subjects s ON g.subject_id = s.id
+    JOIN users stu ON g.student_id = stu.id
+    JOIN users fac ON s.faculty_id = fac.id
+    WHERE g.id = ?
+  `;
+
+  db.query(getGrievanceQuery, [grievanceId], (err, rows) => {
+    if (err) {
+      console.error('❌ Database error in close grievance:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (rows.length === 0) {
+      console.log('❌ Grievance not found with ID:', grievanceId);
+      return res.status(404).json({ error: 'Grievance not found' });
+    }
+
+    const grievanceData = rows[0];
+    console.log('🔍 Grievance data for closure:', {
+      id: grievanceData.id,
+      student_name: grievanceData.student_name,
+      student_email: grievanceData.student_email,
+      subject_name: grievanceData.subject_name
+    });
+
+    // Update grievance status to closed
+    const updateStatusQuery = `UPDATE grievances SET status = 'closed' WHERE id = ?`;
+
+    db.query(updateStatusQuery, [grievanceId], async (err2) => {
+      if (err2) {
+        console.error('❌ Error updating grievance status:', err2);
+        return res.status(500).json({ error: 'Failed to update grievance status' });
+      }
+
+      // Send email notification to student
+      try {
+        const emailResult = await emailService.sendGrievanceClosed(grievanceData);
+        console.log('✅ Grievance closure email sent to student:', emailResult);
+      } catch (emailError) {
+        console.error('❌ Failed to send grievance closure email:', emailError);
+        // Don't fail the request if email fails
+      }
+
+      res.json({ message: 'Grievance closed successfully' });
+    });
+  });
+});
+
+// Send email API endpoint
+app.post('/api/send-email', async (req, res) => {
+  const { to, template, variables } = req.body;
+
+  if (!to || !template) {
+    return res.status(400).json({
+      success: false,
+      message: 'Recipient email and template are required'
+    });
+  }
+
+  try {
+    const result = await emailService.sendEmail(to, template, variables || {});
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Email API error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send email',
+      error: error.message
+    });
+  }
+});
+
+// Test email configuration
+app.get('/api/email/test', async (req, res) => {
+  try {
+    const result = await emailService.testConnection();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Email configuration test failed',
+      error: error.message
+    });
+  }
+});
+
+// Get email logs
+app.get('/api/emails', (req, res) => {
+  const query = `
+    SELECT id, to_email, subject, template, status, sent_at
+    FROM emails
+    ORDER BY sent_at DESC
+    LIMIT 100
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching email logs:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
     res.json(results);

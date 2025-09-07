@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const AdminRegister = () => {
+const AdminRegister = ({ theme }) => {
   const [formData, setFormData] = useState({
     name: "", email: "", password: "", role: "faculty",
   });
@@ -24,9 +24,9 @@ const AdminRegister = () => {
   };
 
   return (
-    <div>
+    <div className={`theme-${theme}`}>
       <h2>Register a Role</h2>
-      <form onSubmit={handleRegister} className="admin-form" style={{display:"flex", gap:12, flexWrap:"wrap", marginTop:12}}>
+      <form onSubmit={handleRegister} className="admin-form" style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 12 }}>
         <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
         <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
         <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />

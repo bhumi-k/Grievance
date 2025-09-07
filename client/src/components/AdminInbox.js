@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const AdminInbox = () => {
+const AdminInbox = ({ theme }) => {
   const [grievances, setGrievances] = useState([]);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const AdminInbox = () => {
   }, []);
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className={`theme-${theme}`} style={{ padding: "20px" }}>
       <h2>📥 Grievance Inbox</h2>
 
       {grievances.length === 0 ? (

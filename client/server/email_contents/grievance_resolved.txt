@@ -1,0 +1,24 @@
+Subject: Grievance Resolved - Marks Updated
+
+Dear {{student_name}},
+
+Your grievance has been successfully resolved by {{faculty_name}}.
+
+Subject Details:
+- Subject Name: {{subject_name}}
+- Subject Code: {{subject_code}}
+- Assignment: {{assignment}}
+- Roll No: {{roll_no}}
+- Complaint ID: {{complaint_id}}
+- Result Date: {{result_date}}
+
+Marks Update:
+- Previous Marks: {{old_marks}}
+- Updated Marks: {{new_marks}}
+
+Your grievance regarding "{{grievance}}" has been addressed and your marks have been updated accordingly.
+
+If you have any further questions, please contact your faculty member.
+
+Best regards,
+Grievance Management System

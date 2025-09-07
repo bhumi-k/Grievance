@@ -1,0 +1,21 @@
+Subject: Grievance Closed - No Changes Made
+
+Dear {{student_name}},
+
+Your grievance has been reviewed and closed by {{faculty_name}}.
+
+Subject Details:
+- Subject Name: {{subject_name}}
+- Subject Code: {{subject_code}}
+- Assignment: {{assignment}}
+- Roll No: {{roll_no}}
+- Complaint ID: {{complaint_id}}
+- Result Date: {{result_date}}
+- Current Marks: {{marks_obtained}}
+
+After careful review of your grievance regarding "{{grievance}}", it has been determined that no changes to your marks are warranted at this time.
+
+The grievance has been officially closed. If you believe this decision was made in error, you may escalate this matter through the appropriate channels.
+
+Best regards,
+Grievance Management System

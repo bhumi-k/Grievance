@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Form.css";
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ theme }) => {
   const [grievanceCount, setGrievanceCount] = useState(0);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ const AdminDashboard = () => {
   }, []);
 
   return (
-    <div className="admin-dashboard">
+    <div className={`admin-dashboard theme-${theme}`}>
       <h2>📊 Admin Dashboard</h2>
 
       <div className="cards">

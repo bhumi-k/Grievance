@@ -78,7 +78,7 @@ function App() {
             <Route
               path="/"
               element={
-                <div style={{ padding: "40px", textAlign: "center" }}>
+                <div className={`theme-${theme}`} style={{ padding: "40px", textAlign: "center", minHeight: "60vh" }}>
                   <h2>Welcome to the Portal</h2>
                   <p>Please login or register</p>
                 </div>
@@ -87,20 +87,20 @@ function App() {
 
             <Route path="/dashboard" element={<Dashboard theme={theme} />} />
             <Route path="/profile" element={<Profile theme={theme} />} />
-            <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
+            <Route path="/raise-grievance/:id" element={<GrievanceForm theme={theme} />} />
 
             {/* Admin routes */}
             <Route
               path="/admin"
               element={
                 <RequireAdmin>
-                  <AdminLayout />
+                  <AdminLayout theme={theme} />
                 </RequireAdmin>
               }
             >
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="register" element={<AdminRegister />} />
-              <Route path="inbox" element={<AdminInbox />} />
+              <Route path="dashboard" element={<AdminDashboard theme={theme} />} />
+              <Route path="register" element={<AdminRegister theme={theme} />} />
+              <Route path="inbox" element={<AdminInbox theme={theme} />} />
             </Route>
 
 
@@ -111,7 +111,7 @@ function App() {
             <Route path="/raise-grievance/:id" element={<GrievanceForm />} />
             <Route path="/faculty-dashboard" element={<FacultyDashboard theme={theme} />} />
             <Route path="/resolve/:id" element={<ResolveGrievance theme={theme} />} />
-            <Route path="/add-subject" element={<AddSubject />} />
+            <Route path="/add-subject" element={<AddSubject theme={theme} />} />
 
           </Routes>
         </main>

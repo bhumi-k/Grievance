@@ -44,6 +44,27 @@
   overflow-y: auto;
 }
 
+/* Dark mode styles */
+.theme-dark .content {
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.theme-dark .sidebar {
+  background: #1a1a1a;
+  border-right: 1px solid var(--border-color);
+}
+
+.theme-dark .card {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.theme-dark .card h3 {
+  color: var(--text-color);
+}
+
 
 .admin-sidebar ul {
   list-style: none;
@@ -71,6 +92,7 @@
   flex: 1;
   padding: 20px;
 }
+
 .dashboard-cards {
   display: flex;
   gap: 20px;
@@ -81,7 +103,7 @@
   background: white;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 

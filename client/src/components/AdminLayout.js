@@ -2,9 +2,9 @@ import React from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import "./AdminLayout.css";
 
-const AdminLayout = () => {
+const AdminLayout = ({ theme }) => {
   return (
-    <div className="admin-layout">
+    <div className={`admin-layout theme-${theme}`}>
       <aside className="sidebar">
         <h2>Admin Panel</h2>
         <nav>

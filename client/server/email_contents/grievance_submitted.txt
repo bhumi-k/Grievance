@@ -1,0 +1,23 @@
+Subject: Grievance Submitted - Action Required
+
+Dear {{faculty_name}},
+
+A new grievance has been submitted by student {{student_name}} (Roll No: {{roll_no}}) regarding the following subject:
+
+Subject Details:
+- Subject Name: {{subject_name}}
+- Subject Code: {{subject_code}}
+- Assignment: {{assignment}}
+- Current Marks: {{marks_obtained}}
+- Result Date: {{result_date}}
+
+Grievance Details:
+- Complaint ID: {{complaint_id}}
+- Nature of Complaint: {{grievance}}
+
+Please review this grievance and take appropriate action within the stipulated time frame.
+
+You can access the grievance management system to resolve this issue.
+
+Best regards,
+Grievance Management System

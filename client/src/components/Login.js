@@ -3,7 +3,7 @@ import "./Form.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const Login = ({ setIsLoggedIn, setRole }) => {
+const Login = ({ setIsLoggedIn, setRole, theme }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -24,11 +24,13 @@ const Login = ({ setIsLoggedIn, setRole }) => {
       setRole(user.role);
       setIsLoggedIn(true);
 
-      // ✅ FIXED: Correct admin redirect
+      // ✅ Role-based redirects
       if (user.role === "admin") {
-        navigate("/admin/dashboard");  // correct route
+        navigate("/admin/dashboard");
+      } else if (user.role === "faculty" || user.role === "hod" || user.role === "ceo" || user.role === "director") {
+        navigate("/faculty-dashboard");
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard"); // student dashboard
       }
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
@@ -36,7 +38,7 @@ const Login = ({ setIsLoggedIn, setRole }) => {
   };
 
   return (
-    <div className="form-container">
+    <div className={`form-container theme-${theme}`}>
       <form className="form" onSubmit={handleSubmit}>
         <h2>Login</h2>
         <input
@@ -60,4 +62,4 @@ const Login = ({ setIsLoggedIn, setRole }) => {
 };
 
 export default Login;
-  
+

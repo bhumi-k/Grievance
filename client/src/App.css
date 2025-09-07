@@ -32,10 +32,12 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
+
 /* Light Theme */
 .theme-light {
   --bg-color: #ffffff;
@@ -53,13 +55,73 @@
 }
 
 /* Apply variables everywhere */
-body, .theme-light, .theme-dark {
+body,
+.theme-light,
+.theme-dark {
   background-color: var(--bg-color);
   color: var(--text-color);
 }
 
-.card, .profile-card, .admin-form, input, select, textarea {
+.card,
+.profile-card,
+.admin-form,
+input,
+select,
+textarea {
   background-color: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
+}
+
+/* Additional dark mode styles */
+.theme-dark table {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.theme-dark th,
+.theme-dark td {
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+.theme-dark .form-control {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.theme-dark .btn {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.theme-dark .btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+}
+
+.theme-dark .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.theme-dark .admin-dashboard {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.theme-dark .alert {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.theme-dark .spinner-border {
+  color: var(--text-color);
 }
